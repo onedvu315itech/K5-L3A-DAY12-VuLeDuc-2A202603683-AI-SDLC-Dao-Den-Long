@@ -10,7 +10,7 @@
 ## Audio & 3D Visuals
 - **3D Prefabs & Procedural Canvas Textures:** Procedural Three.js geometry, lathe silhouettes, and Canvas 2D textures (`game/web/art.js`, `game/web/index.html`), styled after the Whimsical Nightscape design system (`game/DESIGNS.md`).
 - **2D Reference & UI Backdrop Illustrations (`game/web/assets/`):** `lake.jpg`, `bush.jpg`, `stone.jpg`, `tree.jpg`, `lamp_post.jpg`, `blinking_light.jpg`, `noel_moon.jpg`, `ghost.jpg`, `double_character.jpg`, and `conical_hat.jpg` — user-provided Whimsical Nightscape reference illustrations used for menu/intro backdrops and 3D prefab modeling blueprints.
-- **Music & Sound Effects:** 100% procedural real-time Web Audio API synthesis (`game/web/index.html` — dual-oscillator ambient night drone and synthesized SFX for pickup, lantern ignition, pulse, hit, jump, dash, shade spawn, 10s countdown, win, and loss).
+- **Music & Sound Effects:** Background music track `game/web/assets/bgm.mp3` (user-provided) paired with procedural real-time Web Audio API synthesis (`game/web/index.html` — synthesized SFX for pickup, lantern ignition, pulse, hit, jump, dash, shade spawn, 10s countdown, win, and loss).
 
 ## AI Tools Used
 - **Antigravity AI coding assistant (Gemini)** — requirements triage, harness maintenance (`AGENTS.md`, `DESIGNS.md`, `SKILLS.md`, `OUTPUTS.md`), core/3D implementation, and automated test verification (human-directed and verified at every phase gate).

@@ -334,8 +334,12 @@
     <div class="card">
       <h2>Cài Đặt</h2>
       <div class="setting-row">
-        <label for="volSlider">Âm lượng</label>
+        <label for="volSlider">Âm lượng hiệu ứng</label>
         <input id="volSlider" type="range" min="0" max="100" value="60" />
+      </div>
+      <div class="setting-row">
+        <label for="bgmVolSlider">Âm lượng nhạc nền</label>
+        <input id="bgmVolSlider" type="range" min="0" max="100" value="45" />
       </div>
       <div class="setting-row">
         <label for="sensSlider">Độ nhạy chuột</label>
@@ -443,17 +447,20 @@
 
     const settings = {
       volume: Number(localStorage.getItem('ddl_volume') ?? 60),
+      bgmVolume: Number(localStorage.getItem('ddl_bgm_volume') ?? 45),
       sensitivity: Number(localStorage.getItem('ddl_sens') ?? 45),
       colorblind: localStorage.getItem('ddl_colorblind') === 'true',
       reduceMotion: localStorage.getItem('ddl_reducemotion') === 'true',
       largeText: localStorage.getItem('ddl_largetext') === 'true',
     };
     const volSlider = document.getElementById('volSlider');
+    const bgmVolSlider = document.getElementById('bgmVolSlider');
     const sensSlider = document.getElementById('sensSlider');
     const cbToggle = document.getElementById('cbToggle');
     const rmToggle = document.getElementById('rmToggle');
     const ltToggle = document.getElementById('ltToggle');
     volSlider.value = settings.volume;
+    bgmVolSlider.value = settings.bgmVolume;
     sensSlider.value = settings.sensitivity;
     cbToggle.checked = settings.colorblind;
     rmToggle.checked = settings.reduceMotion;
@@ -499,23 +506,21 @@
       renderKeybindUI();
     };
 
-    // Procedural Web Audio API (no external audio files needed)
+    // Background Music (/assets/bgm.mp3) + Procedural Web Audio SFX
     let audioCtx = null;
-    let ambientGain = null;
+    let bgm = null;
     function ensureAudio() {
+      if (!bgm) {
+        bgm = new Audio('/assets/bgm.mp3');
+        bgm.loop = true;
+        bgm.volume = Math.max(0, Math.min(1, settings.bgmVolume / 100));
+      }
+      if (bgm.paused && settings.bgmVolume > 0) bgm.play().catch(() => {});
+
       if (!audioCtx) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!AC) return;
         audioCtx = new AC();
-        ambientGain = audioCtx.createGain();
-        ambientGain.gain.value = (settings.volume / 100) * 0.08;
-        ambientGain.connect(audioCtx.destination);
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        osc1.type = 'sine'; osc1.frequency.value = 110;
-        osc2.type = 'triangle'; osc2.frequency.value = 164.81;
-        osc1.connect(ambientGain); osc2.connect(ambientGain);
-        osc1.start(); osc2.start();
       }
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     }
@@ -989,20 +994,30 @@
     document.getElementById('openSettingsFromPauseBtn').onclick = () => {
       settingsReturnMode = 'paused'; pauseOverlay.style.display = 'none'; settingsOverlay.style.display = 'flex';
     };
+    bgmVolSlider.addEventListener('input', () => {
+      settings.bgmVolume = Number(bgmVolSlider.value);
+      if (bgm) {
+        bgm.volume = Math.max(0, Math.min(1, settings.bgmVolume / 100));
+        if (bgm.paused && settings.bgmVolume > 0) bgm.play().catch(() => {});
+      }
+    });
+
     document.getElementById('closeSettingsBtn').onclick = () => {
       settings.volume = Number(volSlider.value);
+      settings.bgmVolume = Number(bgmVolSlider.value);
       settings.sensitivity = Number(sensSlider.value);
       settings.colorblind = Boolean(cbToggle.checked);
       settings.reduceMotion = Boolean(rmToggle.checked);
       settings.largeText = Boolean(ltToggle.checked);
       localStorage.setItem('ddl_volume', String(settings.volume));
+      localStorage.setItem('ddl_bgm_volume', String(settings.bgmVolume));
       localStorage.setItem('ddl_sens', String(settings.sensitivity));
       localStorage.setItem('ddl_colorblind', String(settings.colorblind));
       localStorage.setItem('ddl_reducemotion', String(settings.reduceMotion));
       localStorage.setItem('ddl_largetext', String(settings.largeText));
       document.body.classList.toggle('colorblind', settings.colorblind);
       document.body.classList.toggle('large-text', settings.largeText);
-      if (ambientGain) ambientGain.gain.value = (settings.volume / 100) * 0.08;
+      if (bgm) bgm.volume = Math.max(0, Math.min(1, settings.bgmVolume / 100));
       settingsOverlay.style.display = 'none';
       if (settingsReturnMode === 'menu') mainMenuOverlay.style.display = 'flex';
       else pauseOverlay.style.display = 'flex';

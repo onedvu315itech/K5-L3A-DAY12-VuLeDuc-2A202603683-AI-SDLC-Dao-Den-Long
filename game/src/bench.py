@@ -150,7 +150,6 @@ def run_benchmark(seed: int = 42, duration_s: float = 30.0, warmup_s: float = 3.
         dt = max(1e-4, now - t_prev)
         t_prev = now
         step_benchmark_frame(engine, dt, elapsed)
-        time.sleep(0.0015)
 
     # Measured duration (--duration seconds)
     frame_dts_ms: list[float] = []
@@ -163,8 +162,8 @@ def run_benchmark(seed: int = 42, duration_s: float = 30.0, warmup_s: float = 3.
         elapsed = now - t_meas_start
         if elapsed >= duration_s:
             break
-        step_benchmark_frame(engine, 1.0 / 120.0, warmup_s + elapsed)
-        time.sleep(0.0025)
+        dt_s = max(1e-5, now - t_prev)
+        step_benchmark_frame(engine, dt_s, warmup_s + elapsed)
         frame_end = time.perf_counter()
         dt_ms = (frame_end - t_prev) * 1000.0
         t_prev = frame_end

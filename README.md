@@ -32,7 +32,7 @@ Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/p
 - **Châm dầu đèn đang sáng (`fuel < 100`):** `+10` fuel / đom đóm; đèn tự hao `1.0/s` và bị Bóng Mực hút `5/s` khi `fuel < 30`.
 - **Tỏa Sáng trúng Bóng Mực (`per_stun`):** `+5` điểm / Bóng Mực (`+15` nếu đang hút dầu `drain`).
 - **Thắng khi giữ đảo sáng tới Bình Minh (`dawn_survived`):** Đêm 1/2/3 (`240/270/300s`) cần ≥ `60%` số đèn đang sáng (`3/5`, `4/6`, `5/7`); thưởng `+50 + floor(fuel)` mỗi đèn sáng + `+50` mỗi Ngọn Lửa còn lại.
-- **Tài liệu thay đổi Phase 3:** Xem [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) và [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CHANGELOG.md).
+- **Tài liệu thay đổi Phase 3:** Xem [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) và [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/CHANGELOG.md).
 
 ### Tests, Headless, Benchmark, Soak & Leaderboard (Test Contract v1.3)
 - **System Requirements:** Python `>= 3.11` (stdlib only, zero third-party packages) + modern WebGL browser (Chrome / Edge / Firefox / Safari) on macOS, Linux, or Windows.
@@ -58,7 +58,7 @@ Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/p
   python3 game/src/play.py --export-leaderboard out.json
   ```
 - **Documentation & Proof:**
-  - [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CHANGELOG.md) · [CREDITS.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CREDITS.md) · [LICENSE](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/LICENSE)
+  - [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/CHANGELOG.md) · [CREDITS.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/CREDITS.md) · [LICENSE](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/LICENSE)
   - [Phase 1–4 Proofs](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/proof/README.md) · [Assumptions](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/assumptions.md) · [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) · [AI & Token Log](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/ai-log.md) · [Retrospective](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/retro.md)
 
 ### Sáng tạo của tôi
