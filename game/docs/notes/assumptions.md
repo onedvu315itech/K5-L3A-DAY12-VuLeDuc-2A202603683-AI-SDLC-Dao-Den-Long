@@ -25,6 +25,30 @@
 - **Test Suite Evolution Note (CP0 -> Phase 1):**
   - Updated `game/tests/test_hello.py` from the 3 CP0 placeholder hello-lantern tests to 9 Phase 1 `Test Contract v1.0` tests (`TestPhase1ContractAndSimulation`) because `PRD-0` replaced the temporary `lantern-hello` JSON output with the official `Test Contract v1.0` JSONL (`snapshot` / `event` / `end`) and `game.contract.json` tuning schema.
 
+## Phase 2 (Ticket-02 — "Ba hòn đảo" & Contract v1.1)
+- **Updates / Overrides to Phase 1 Assumptions:**
+  - All Phase 1 self-chosen constants are replaced by Ticket-02 Part 1 standardized constants (`player_speed=6.0`, `carry_capacity=10`, `lantern_cost=10`, `pickup_radius=1.0`, `interact_radius=2.0`, `pulse_cost=3`, `pulse_radius=5.0`, `safe_radius=6.0`, `shade_speed=4.0` / Night 3 `4.5`, `shade_hit_radius=1.0`, `night1=300s`, `fall_enabled=true`, and standardized scoring: `+10/mote deposited`, `+100/lantern`, `+5/shade stunned`, `+floor(time_left)*2 + 50*flames` on win).
+  - `score.per_mote` in `game.contract.json` is set to `0` (pickup no longer scores; depositing scores `+10` per mote deposited).
+  - Phase 1 unit tests that asserted old Phase 1 tuning numbers (e.g., `player_speed=7.0`, `lantern_cost=3`, `pulse_cost=1`, `per_mote` on pickup) are updated to match Ticket-02 standardized constants.
+- **Ambiguities & Chosen Assumptions for Ticket-02:**
+  - **Acceleration / Stopping (`<= 0.1s`):** Instant velocity response (0 ticks lag, `<= 0.1s`) when grounded or airborne, except during Dash (`14 m/s` for `12` ticks) or Jump Pad launch (horizontal launch velocity preserved until landing, though Dash is still allowed in air).
+  - **Fall & Respawn (`Y < -10`):** When `player.y < -10`, if not already respawning: `-1` flame, `lost = carried`, `carried = 0`, emit `player_hit` (`by: "fall", flames, dropped: lost, lost`). If `flames == 0`, game ends immediately (`no_flames`); otherwise enter 60-tick respawn wait (no pickup, no shade hit), then respawn at `(0, 0, 0)` with `vel = [0, 0, 0]` and `90` ticks invulnerability.
+  - **Safe Radius Push-Out:** When a lantern lights (`lit=true`), any non-stunned shade inside `6.0m` enters `recoil` (or push-out) and moves radially outward to `6.0m` within at most `30` ticks without dealing damage during push-out.
+  - **Shade States (`spawning | wander | chase | recoil | stunned`):** Spawned shades start in `chase` (or `wander` if `> 12m` from player); `chase` drops to `wander` if distance `> 18m` (circling/drifting near spawn/patrol); hitting Mây puts that shade in `recoil` (`2m` back over `60` ticks); Pulse puts shades in `stunned` (`120` ticks, first `15` ticks pushed `4m` horizontally, stopping on obstacles/cliffs).
+  - **Obstacles & Cliffs:** Night 3 Bell Tower (`R=2m` cylinder at `(0,6,0)`, `H=8m`) blocks player/shade/pulse push horizontally. Tier ledges (`Y=0/3/6`) are vertical cliffs (cannot walk up except via the 2 `3m`-wide ramps at `30°` and `150°`; walking off drops to the lower tier).
+  - **Night 3 Wind (`wind_enabled`):** Default `true` on Night 3 (`false` on Nights 1–2 unless overridden in scenario). Every `30s` (`1800` ticks), a `5s` (`300` ticks) gust pushes Mây at `2.0 m/s` in a seeded random direction, with `2s` (`120` ticks) visual/audio telegraph beforehand.
+  - **Dropped Motes:** `floor(carried / 2)` motes spawn on the ground at seeded angles on a `1.5–2.5m` ring around Mây (clamped to valid island surface if near edge) with `ttl_s = 8.0s` (`480` ticks), pickable from tick `k+1`.
+  - **Score per Deposit:** `+10 * amount` awarded on `deposit` event; `+100` on `lantern_lit`; `+5 * len(stunned_ids)` on `pulse`; `+ int(math.floor(time_left_s)) * 2 + 50 * flames` on `won`.
+- **Acceptance Criteria (Part 3 & Contract v1.1):**
+  1. `game.contract.json` (`contract_version: "1.1"`) matches `TUNING` and passes regression + Phase 2 headless scenarios.
+  2. Movement (`6.0 m/s`), Jump (`7.0 m/s`, `-20 m/s²`), and Dash (`14 m/s`, `0.2s`, `1.5s` cd) behave identically in headless and 3D.
+  3. Night 2 twin islands, bamboo bridge, and both jump pads launch Mây across the gap (`~1.4s` flight) and land safely on the opposite island.
+  4. Night 3 3-tier geometry, 2 ramps (`30°`, `150°`), jump pad to Tier 2, Bell Tower collision, and periodic wind gusts work deterministically.
+  5. Gió Lạc (`D1, D2`) transitions `idle -> chase -> flee -> removed`, steals up to 3 motes, and drops stolen motes when hit by Pulse while fleeing.
+  6. Bùa Gió (`C1, C2`) grants `7.2 m/s` speed and `0s` Dash cooldown for `600` ticks and respawns after `2700` ticks.
+  7. Pause (`Esc`/`P` or `pause: true` input) freezes `sim_tick`, timers, spawns, and TTLs with `state: "paused"`, and resumes cleanly.
+  8. Full 21,600-tick headless Night runs in `<= 30s`; 3D client runs smoothly (`>= 30 FPS` at `1280×720`) with full HUD, 3-Night campaign flow, saved settings, and Web Audio SFX.
+
 ## Phase 2 (Ticket-02)
 - **Clarifications / Updates to Phase 1 Assumptions:**
   - *(List any assumptions refined or overridden.)*

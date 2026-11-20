@@ -1,4 +1,4 @@
-"""Headless Test Contract v1.0 CLI runner for Đảo Đèn Lồng."""
+"""Headless Test Contract v1.1 CLI runner for Đảo Đèn Lồng (Nights 1, 2, 3)."""
 
 from __future__ import annotations
 
@@ -42,8 +42,8 @@ def run_contract_simulation(
     inputs: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Run deterministic headless simulation and return JSONL records (snapshots, events, end)."""
-    if night != 1:
-        raise ValueError(f"Unsupported --night {night} (only night 1 is supported in Phase 1).")
+    if night not in (1, 2, 3):
+        raise ValueError(f"Unsupported --night {night} (must be 1, 2, or 3).")
     if ticks < 0:
         raise ValueError(f"--ticks must be >= 0 (got {ticks}).")
     if snapshot_every <= 0:
@@ -53,13 +53,8 @@ def run_contract_simulation(
     if inputs is not None:
         frames_by_tick = parse_inputs_frames(inputs)
 
-    if frames_by_tick:
-        max_input_tick = max(frames_by_tick.keys())
-        # Frames beyond --ticks are ignored cleanly, already validated for strict increase
-        _ = max_input_tick
-
     engine = GameEngine(seed=seed, night=night)
-    engine.reset(seed=seed, scenario=scenario)
+    engine.reset(seed=seed, night=night, scenario=scenario)
 
     records: list[dict[str, Any]] = []
     # Tick 0 snapshot (after scenario setup, before any input)
@@ -72,9 +67,10 @@ def run_contract_simulation(
     interact = False
     pulse = False
     dash = False
+    pause = False
 
     for k in range(ticks):
-        if engine.state != "playing":
+        if engine.state in ("won", "lost"):
             break
 
         frame = frames_by_tick.get(k)
@@ -92,6 +88,8 @@ def run_contract_simulation(
                 pulse = bool(frame["pulse"])
             if "dash" in frame:
                 dash = bool(frame["dash"])
+            if "pause" in frame:
+                pause = bool(frame["pause"])
 
         step_events = engine.step(
             StepInput(
@@ -102,6 +100,7 @@ def run_contract_simulation(
                 interact=interact,
                 pulse=pulse,
                 dash=dash,
+                pause=pause,
             )
         )
         records.extend(step_events)
@@ -109,7 +108,7 @@ def run_contract_simulation(
         if engine.tick % snapshot_every == 0:
             records.append(engine.snapshot())
 
-        if engine.state != "playing":
+        if engine.state in ("won", "lost"):
             break
 
     records.append(
@@ -128,9 +127,9 @@ def format_jsonl(records: list[dict[str, Any]]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Đảo Đèn Lồng — Headless Test Contract v1.0")
+    parser = argparse.ArgumentParser(description="Đảo Đèn Lồng — Headless Test Contract v1.1")
     parser.add_argument("--seed", type=int, default=42, help="Deterministic RNG seed")
-    parser.add_argument("--night", type=int, default=1, help="Night number (1 for Phase 1)")
+    parser.add_argument("--night", type=int, default=1, help="Night number (1, 2, or 3)")
     parser.add_argument("--scenario", type=Path, default=None, help="Path to scenario JSON file")
     parser.add_argument("--inputs", type=Path, default=None, help="Path to inputs JSON file")
     parser.add_argument("--ticks", type=int, default=600, help="Maximum simulation ticks to run")

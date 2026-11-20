@@ -2,6 +2,7 @@
 
 <!-- [CP0] Baseline stack, architecture rules, doc routing, and pre-code confirmation gate -->
 <!-- [Phase 1] Added PRD-0 / Test Contract v1.0 rules: root game.contract.json, 60Hz tick model, exit codes, and JSONL output -->
+<!-- [Phase 2] Upgraded to Ticket-02 ("Ba hòn đảo") & Test Contract v1.1: 3 nights (1/2/3), standardized tuning, 12-step tick order, pause, drifters, charms, wind, <=30s headless budget -->
 
 ## 1. Mandatory Pre-Code Gate (STOP & CONFIRM FIRST)
 Whenever new phase requirements or tickets arrive (`PRD-0`, `Ticket-02`, `Ticket-03`, `Ticket-04`), **DO NOT write or edit game code yet**:
@@ -25,6 +26,7 @@ Whenever new phase requirements or tickets arrive (`PRD-0`, `Ticket-02`, `Ticket
 - **Verify all (unit tests + headless + determinism):** `python3.12 game/scripts/verify.py` (or `python3 game/scripts/verify.py` on macOS/Linux).
 - **Run headless (from `game/`):** `python3.12 -m src.headless`
 <!-- [Phase 1] Contract headless CLI from repo root: `python3 game/src/headless.py --seed <int> --night 1 [--scenario <file.json>] [--inputs <file.json>] --ticks <int> --out <file.jsonl> [--snapshot-every 10]` -->
+<!-- [Phase 2] Contract v1.1: `--night` accepts `1`, `2`, or `3`; full night (up to 21,600 ticks) MUST complete in <= 30s; follow exact 12-step tick order and pause semantics -->
 - **Run 3D game (from `game/`):** `python3.12 -m src.play` -> open `http://127.0.0.1:8000`
 <!-- [Phase 1] Root contract manifest: `game.contract.json` MUST live at repository root and its `tuning` numbers MUST match `game/src/core/` constants exactly -->
 

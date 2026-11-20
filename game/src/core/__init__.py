@@ -1,6 +1,8 @@
 from src.core.config import TUNING, ScoreConfig, TuningConfig
 from src.core.engine import (
+    Charm,
     ContractValidationError,
+    Drifter,
     GameEngine,
     Lantern,
     Mote,
@@ -11,7 +13,9 @@ from src.core.engine import (
 )
 
 __all__ = [
+    "Charm",
     "ContractValidationError",
+    "Drifter",
     "GameEngine",
     "Lantern",
     "Mote",

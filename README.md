@@ -19,29 +19,28 @@ Then open `http://127.0.0.1:8000` in your browser to play **Đêm 1 – Đảo B
 ### Controls (Điều khiển)
 - `W A S D` / `↑ ↓`: Di chuyển Mây theo hướng camera
 - `Space`: Nhảy (`jump`)
+- `Shift`: Lướt (`dash`, `14 m/s` trong `0.2s`, hồi chiêu `1.5s`)
 - `Q` / `← →` / Kéo chuột: Xoay góc nhìn camera 3D (`cam_yaw_deg`)
-- `E` hoặc `F`: Nạp đom đóm để thắp Đèn Lồng Lớn (`interact`, trong bán kính `2.5m`, cần `3` đom đóm/đèn)
-- `Shift` hoặc `J`: Tỏa sáng xua và làm choáng Bóng Mực (`pulse`, tốn `1` đom đóm, bán kính `6.0m`, đẩy lùi `5.0m`, choáng `3.0s`, hồi chiêu `3.0s`)
-- `R`: Chơi lại (`Reset / Play Again`)
+- `E`: Nạp đom đóm để thắp Đèn Lồng Lớn (`interact`, bán kính `2.0m`, cần `10` đom đóm/đèn)
+- `F` hoặc `J`: Tỏa Sáng (`pulse`, tốn `3` đom đóm, bán kính `5.0m`, choáng `2.0s` & đẩy lùi `4.0m`, hồi chiêu `3.0s`)
+- `Esc` hoặc `P`: Tạm dừng (`pause`)
 
-### Scoring & Tuning (Cách tính điểm & thông số)
+### Scoring & Tuning (Cách tính điểm & thông số chuẩn — Contract v1.1)
 Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game.contract.json):
-- **Nhặt đom đóm (`per_mote`):** `+10` điểm / đom đóm (tối đa mang `carry_capacity = 5` cùng lúc).
-- **Thắp sáng Đèn Lồng Lớn (`per_lantern`):** `+100` điểm / đèn (cần `lantern_cost = 3` đom đóm; tổng `5` đèn `L1..L5`).
-- **Làm choáng Bóng Mực (`per_stun`):** `+25` điểm / Bóng Mực bị làm choáng khi tỏa sáng (`pulse`).
-- **Thưởng khi Thắng (`all_lit`):**
-  - Thời gian đêm còn lại (`per_second_left`): `+5` điểm × số giây còn lại (`round(time_left_s * 5)`).
-  - Lửa tâm còn lại (`per_flame_left`): `+50` điểm × số lửa tâm còn lại (`flames`, bắt đầu với `3`).
-- **`fall_enabled = false`:** Đảo Bến có ranh giới bờ đảo an toàn (`R = 42m`), nhân vật không rơi khỏi đảo.
+- **Nạp đom đóm vào đèn:** `+10` điểm / đom đóm nạp (`carry_capacity = 10`, `lantern_cost = 10`).
+- **Thắp sáng Đèn Lồng Lớn (`per_lantern`):** `+100` điểm / đèn (Đêm 1: `5`, Đêm 2: `6`, Đêm 3: `7`).
+- **Tỏa Sáng trúng Bóng Mực (`per_stun`):** `+5` điểm / Bóng Mực mỗi lần.
+- **Thưởng khi Thắng Đêm:** `+ floor(time_left_s) × 2 + 50 × flames`.
+- **`fall_enabled = true`:** Rơi khỏi đảo (`Y < -10`) mất `1` Ngọn Lửa và toàn bộ đom đóm mang theo, hồi sinh tại `(0,0,0)` sau `60` tick.
 
-### Tests & Headless Mode (Test Contract v1.0)
-- **Run full verification suite (unit tests + contract CLI + determinism):**
+### Tests & Headless Mode (Test Contract v1.1)
+- **Run full verification suite (unit tests + Nights 1–3 headless + 21,600-tick determinism & perf):**
   ```bash
   python3 game/scripts/verify.py
   ```
-- **Run headless contract CLI:**
+- **Run headless contract CLI (`--night 1 | 2 | 3`):**
   ```bash
-  python3 game/src/headless.py --seed 42 --night 1 --scenario game/tests/scenarios/win_scenario.json --inputs game/tests/scenarios/win_inputs.json --ticks 200 --out out.jsonl --snapshot-every 25
+  python3 game/src/headless.py --seed 42 --night 3 --ticks 21600 --out out.jsonl --snapshot-every 60
   ```
 
 ### Sáng tạo của tôi

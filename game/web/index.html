@@ -3,1022 +3,688 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Đảo Đèn Lồng — Đêm 1: Đảo Bến (Whimsical Nightscape)</title>
+  <title>Đảo Đèn Lồng — Ba Hòn Đảo (Phase 2)</title>
   <style>
     :root {
-      --color-night-950: #071326;
-      --color-night-900: #0B1D35;
-      --color-night-800: #102B49;
-      --color-blue-700: #16466A;
-      --color-blue-500: #267FA0;
-      --color-teal-300: #63C6C8;
-      --color-moon-100: #FFF0B7;
-      --color-star-100: #F7F7FF;
-      --color-lavender-200: #C6B9E8;
-      --color-violet-900: #29233F;
-      --color-ink-950: #171923;
-      --color-mist-100: #E9EDF2;
-
-      --surface-page: var(--color-night-950);
-      --surface-raised: rgba(11, 29, 53, 0.82);
-      --text-primary: var(--color-star-100);
-      --text-muted: #B8C7D8;
-      --accent-primary: var(--color-moon-100);
-      --accent-secondary: var(--color-teal-300);
-
-      --radius-card: 12px;
-      --radius-control: 8px;
+      --sky: #0E1430;
+      --fog: #1B2350;
+      --grass: #2F5D50;
+      --sand: #C9B48A;
+      --wood: #6B4A2F;
+      --clouds: #12384A;
+      --lantern-lit: #FFB347;
+      --lantern-core: #FFE9B0;
+      --lantern-off: #5B5F6E;
+      --mote-core: #FFF6C2;
+      --mote-halo: #FFE58A;
+      --shade-body: #120A1A;
+      --shade-rim: #7A3CFF;
+      --shade-stun: #3A3450;
+      --may-cloak: #E8E2D0;
+      --crimson: #C8102E;
+      --gold: #F2C14E;
+      --drifter: #8FA3B8;
+      --danger: #FF5A5F;
+      --ui-text: #F5F1E6;
+      --panel-bg: rgba(14, 20, 48, 0.84);
     }
-
     * { box-sizing: border-box; }
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: var(--surface-page);
-      color: var(--text-primary);
+      margin: 0; padding: 0; width: 100%; height: 100%;
+      overflow: hidden; background: var(--sky); color: var(--ui-text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       user-select: none;
     }
 
-    #hud {
-      position: fixed;
-      top: 14px;
-      left: 14px;
-      min-width: 295px;
-      max-width: calc(100vw - 28px);
-      padding: 13px 16px;
-      background: var(--surface-raised);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 240, 183, 0.3);
-      border-radius: var(--radius-card);
-      box-shadow: 0 10px 28px rgba(7, 19, 38, 0.65);
-      font-size: 13.5px;
-      line-height: 1.55;
-      z-index: 10;
+    /* HUD Layout per Ticket-02 Part 3 */
+    .hud-box {
+      position: fixed; z-index: 10;
+      background: var(--panel-bg);
+      border: 1px solid rgba(242, 193, 78, 0.45);
+      border-radius: 10px;
+      padding: 8px 14px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
     }
-    .hud-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--accent-primary);
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      letter-spacing: 0.01em;
+    #hudTopLeft { top: 14px; left: 14px; font-size: 15px; font-weight: 700; }
+    #hudTopCenter {
+      top: 14px; left: 50%; transform: translateX(-50%);
+      text-align: center; min-width: 130px;
     }
-    .hud-badge {
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--accent-secondary);
-      background: rgba(22, 70, 106, 0.55);
-      border: 1px solid rgba(99, 198, 200, 0.35);
-      padding: 1px 8px;
-      border-radius: 999px;
+    #hudTimer { font-size: 22px; font-weight: 800; letter-spacing: 0.04em; color: var(--ui-text); }
+    #hudTimer.urgent { color: var(--danger); animation: blinkUrgent 0.7s infinite; }
+    @keyframes blinkUrgent { 50% { opacity: 0.45; } }
+    #hudNightLabel { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    #hudTopRight { top: 14px; right: 14px; text-align: right; min-width: 170px; }
+    #hudLanterns { font-size: 15px; font-weight: 700; color: var(--lantern-lit); }
+    #hudScore { font-size: 14px; font-weight: 700; color: var(--gold); }
+
+    #hudBottomCenter {
+      bottom: 16px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
     }
-    .hud-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 14px;
-      margin: 2px 0;
+    .mote-slots { display: flex; gap: 5px; }
+    .mote-slot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(91, 95, 110, 0.4);
+      border: 1.5px solid rgba(242, 193, 78, 0.45);
+      transition: transform 0.15s ease, background 0.15s ease;
     }
-    .hud-label { color: var(--text-muted); }
-    .hud-val { font-weight: 600; color: var(--accent-primary); }
-    .hud-val.cool { color: var(--accent-secondary); }
-    .hud-val.danger { color: var(--color-lavender-200); }
-    .hud-hint {
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1px solid rgba(184, 199, 216, 0.18);
-      font-size: 11.8px;
-      color: var(--text-muted);
+    .mote-slot.filled {
+      background: radial-gradient(circle, var(--mote-core) 30%, var(--mote-halo) 100%);
+      border-color: var(--gold);
+      box-shadow: 0 0 8px var(--mote-halo);
+      transform: scale(1.08);
     }
-    kbd {
-      background: var(--color-night-950);
-      border: 1px solid rgba(184, 199, 216, 0.35);
-      border-radius: 4px;
-      padding: 1px 5px;
-      font-size: 11px;
-      color: var(--text-primary);
+
+    #hudBottomRight {
+      bottom: 16px; right: 14px;
+      display: flex; gap: 10px; align-items: center;
     }
+    .skill-badge {
+      min-width: 96px; text-align: center; padding: 6px 10px;
+      border-radius: 8px; border: 1px solid rgba(242, 193, 78, 0.4);
+      background: rgba(14, 20, 48, 0.75); font-size: 12px;
+    }
+    .skill-badge .cd { font-weight: 700; font-size: 13px; color: var(--gold); margin-top: 2px; }
+    .skill-badge.cooling .cd { color: var(--danger); }
 
     #promptBanner {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 18px;
-      background: rgba(11, 29, 53, 0.9);
-      border: 1px solid rgba(255, 240, 183, 0.45);
-      border-radius: 999px;
-      color: var(--accent-primary);
-      font-weight: 600;
-      font-size: 13.5px;
-      box-shadow: 0 6px 20px rgba(7, 19, 38, 0.6);
-      z-index: 10;
-      display: none;
+      position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%);
+      padding: 7px 16px; background: var(--panel-bg);
+      border: 1px solid var(--gold); border-radius: 999px;
+      color: var(--mote-core); font-weight: 600; font-size: 13.5px;
+      z-index: 11; display: none;
+    }
+    #windBanner {
+      position: fixed; top: 84px; left: 50%; transform: translateX(-50%);
+      padding: 5px 14px; background: rgba(200, 16, 46, 0.85);
+      border: 1px solid var(--gold); border-radius: 999px;
+      color: var(--ui-text); font-weight: 700; font-size: 12.5px;
+      z-index: 11; display: none;
     }
 
-    #modalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(7, 19, 38, 0.88);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
+    #offscreenArrow {
+      position: fixed; z-index: 12; display: none; pointer-events: none;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(14, 20, 48, 0.88);
+      border: 2px solid var(--gold);
+      color: var(--lantern-lit); font-weight: 900; font-size: 18px;
+      align-items: center; justify-content: center;
+      box-shadow: 0 0 12px rgba(255, 179, 71, 0.6);
     }
-    .modal-card {
-      background: var(--color-night-900);
-      border: 1.5px solid rgba(255, 240, 183, 0.45);
-      border-radius: var(--radius-card);
-      padding: 28px 36px;
+
+    /* Overlays & Menus */
+    .overlay {
+      position: fixed; inset: 0; z-index: 30;
+      background: rgba(14, 20, 48, 0.88);
+      backdrop-filter: blur(5px);
+      display: none; align-items: center; justify-content: center;
+    }
+    .card {
+      background: #131b3d;
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 26px 32px;
+      width: min(440px, 92vw);
       text-align: center;
-      max-width: 410px;
-      box-shadow: 0 18px 44px rgba(7, 19, 38, 0.8);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7);
     }
-    .modal-card h2 {
-      margin: 0 0 8px;
-      font-size: 25px;
-      color: var(--accent-primary);
-    }
-    .modal-card p {
-      margin: 6px 0;
-      color: var(--color-mist-100);
-      font-size: 15px;
-    }
+    .card h1, .card h2 { margin: 0 0 10px; color: var(--gold); }
+    .card p { margin: 8px 0; color: var(--ui-text); line-height: 1.5; font-size: 14.5px; }
+    .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
     .btn {
-      margin-top: 16px;
-      padding: 9px 22px;
-      background: var(--color-moon-100);
-      color: var(--color-ink-950);
-      border: 2px solid transparent;
-      border-radius: var(--radius-control);
-      font-weight: 700;
-      font-size: 14px;
+      padding: 10px 18px; border-radius: 8px; border: 1.5px solid var(--gold);
+      background: var(--gold); color: #120A1A; font-weight: 700; font-size: 14px;
       cursor: pointer;
-      transition: transform 0.12s ease, background-color 0.12s ease;
     }
-    .btn:hover {
-      background: #ffe58f;
-      transform: translateY(-1px);
+    .btn.secondary { background: transparent; color: var(--ui-text); }
+    .btn:hover { filter: brightness(1.08); }
+    .setting-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 12px 0; font-size: 14px;
     }
-    .btn:focus-visible {
-      outline: 2px solid var(--color-teal-300);
-      outline-offset: 2px;
-    }
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .btn { transition: none; }
-    }
+    .setting-row input[type="range"] { width: 170px; accent-color: var(--gold); }
   </style>
 </head>
 <body>
-  <div id="hud">
-    <div class="hud-title">
-      <span>Đảo Đèn Lồng · Đêm 1</span>
-      <span id="hudState" class="hud-badge">Đảo Bến</span>
+  <div id="hudTopLeft" class="hud-box">🔥 <span id="hudFlames">3</span></div>
+
+  <div id="hudTopCenter" class="hud-box">
+    <div id="hudNightLabel">Đêm 1 · Đảo Bến</div>
+    <div id="hudTimer">05:00</div>
+  </div>
+
+  <div id="hudTopRight" class="hud-box">
+    <div id="hudLanterns">Đèn: 0 / 5</div>
+    <div id="hudScore">Điểm: 0</div>
+  </div>
+
+  <div id="hudBottomCenter" class="hud-box">
+    <div class="mote-slots" id="moteSlots"></div>
+    <div style="font-size:11.5px;color:#d6d3c9;">WASD Di chuyển · Space Nhảy · Shift Lướt · Q/←→/Chuột Camera · E Nạp · F/J Tỏa Sáng · Esc Tạm dừng</div>
+  </div>
+
+  <div id="hudBottomRight" class="hud-box">
+    <div id="dashBadge" class="skill-badge">
+      <div>Lướt [Shift]</div>
+      <div class="cd" id="dashCd">Sẵn sàng</div>
     </div>
-    <div class="hud-row">
-      <span class="hud-label">Lửa tâm (Máu):</span>
-      <span class="hud-val" id="hudFlames">🔥🔥🔥 (3)</span>
+    <div id="pulseBadge" class="skill-badge">
+      <div>Tỏa Sáng [J/F]</div>
+      <div class="cd" id="pulseCd">Sẵn sàng</div>
     </div>
-    <div class="hud-row">
-      <span class="hud-label">Đom đóm mang theo:</span>
-      <span class="hud-val" id="hudCarried">0 / 5</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-label">Đèn Lồng Lớn:</span>
-      <span class="hud-val" id="hudLanterns">0 / 5</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-label">Tỏa sáng (Xua Bóng Mực):</span>
-      <span class="hud-val cool" id="hudPulse">Sẵn sàng (1 đom đóm)</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-label">Thời gian còn lại:</span>
-      <span class="hud-val" id="hudTime">04:00</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-label">Điểm số:</span>
-      <span class="hud-val" id="hudScore">0</span>
-    </div>
-    <div class="hud-hint">
-      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Di chuyển · <kbd>Space</kbd> Nhảy · <kbd>Q</kbd>/<kbd>← →</kbd>/Chuột Xoay góc nhìn</div>
-      <div><kbd>E</kbd> hoặc <kbd>F</kbd> Thắp đèn · <kbd>Shift</kbd> hoặc <kbd>J</kbd> Tỏa sáng · <kbd>R</kbd> Chơi lại</div>
+    <div id="charmBadge" class="skill-badge" style="display:none;border-color:var(--crimson);">
+      <div>Bùa Gió</div>
+      <div class="cd" id="charmCd">0.0s</div>
     </div>
   </div>
 
-  <div id="promptBanner">Nhấn [E] để nạp đom đóm vào Đèn Lồng Lớn</div>
+  <div id="promptBanner">E — Nạp ánh sáng (0/10)</div>
+  <div id="windBanner">⚠ Gió mạnh sắp thổi!</div>
+  <div id="offscreenArrow">➤</div>
 
-  <div id="modalOverlay">
-    <div class="modal-card">
-      <h2 id="modalTitle">Chiến Thắng!</h2>
-      <p id="modalReason">Mây đã thắp sáng toàn bộ 5 Đèn Lồng Lớn trên Đảo Bến.</p>
-      <p style="font-size:19px;font-weight:700;color:var(--color-moon-100);" id="modalScore">Điểm: 0</p>
-      <button class="btn" id="playAgainBtn">Chơi lại (R)</button>
+  <!-- Main Menu -->
+  <div id="mainMenuOverlay" class="overlay" style="display:flex;">
+    <div class="card">
+      <h1>Đảo Đèn Lồng</h1>
+      <p style="color:var(--lantern-core);">Ba Hòn Đảo · Hành trình thắp sáng đêm sương</p>
+      <div class="btn-row">
+        <button class="btn" id="startCampaignBtn">Bắt đầu từ Đêm 1</button>
+        <button class="btn secondary" id="selectN2Btn">Chơi thử Đêm 2 — Đảo Cau</button>
+        <button class="btn secondary" id="selectN3Btn">Chơi thử Đêm 3 — Đảo Chuông</button>
+        <button class="btn secondary" id="openSettingsFromMenuBtn">Cài đặt</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Night Intro (Ông Đăng) -->
+  <div id="introOverlay" class="overlay">
+    <div class="card">
+      <h2 id="introTitle">Đêm 1 — Đảo Bến</h2>
+      <p id="introSpeech" style="font-style:italic;color:var(--lantern-core);"></p>
+      <div class="btn-row">
+        <button class="btn" id="beginNightBtn">Bắt đầu thắp đèn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Menu -->
+  <div id="pauseOverlay" class="overlay">
+    <div class="card">
+      <h2>Tạm Dừng</h2>
+      <div class="btn-row">
+        <button class="btn" id="resumeBtn">Tiếp tục</button>
+        <button class="btn secondary" id="restartNightBtn">Chơi lại Đêm này</button>
+        <button class="btn secondary" id="openSettingsFromPauseBtn">Cài đặt</button>
+        <button class="btn secondary" id="backToMenuBtn">Về menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settingsOverlay" class="overlay">
+    <div class="card">
+      <h2>Cài Đặt</h2>
+      <div class="setting-row">
+        <label for="volSlider">Âm lượng</label>
+        <input id="volSlider" type="range" min="0" max="100" value="60" />
+      </div>
+      <div class="setting-row">
+        <label for="sensSlider">Độ nhạy chuột</label>
+        <input id="sensSlider" type="range" min="10" max="100" value="45" />
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="closeSettingsBtn">Lưu & Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Night Result / Dawn Victory -->
+  <div id="resultOverlay" class="overlay">
+    <div class="card">
+      <h2 id="resultTitle">Hoàn Thành Đêm!</h2>
+      <p id="resultReason"></p>
+      <p id="resultScore" style="font-size:18px;font-weight:700;color:var(--gold);"></p>
+      <div class="btn-row">
+        <button class="btn" id="resultPrimaryBtn">Đêm kế tiếp</button>
+        <button class="btn secondary" id="resultMenuBtn">Về menu</button>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    const hudFlames = document.getElementById('hudFlames');
-    const hudCarried = document.getElementById('hudCarried');
-    const hudLanterns = document.getElementById('hudLanterns');
-    const hudPulse = document.getElementById('hudPulse');
-    const hudTime = document.getElementById('hudTime');
-    const hudScore = document.getElementById('hudScore');
-    const promptBanner = document.getElementById('promptBanner');
-    const modalOverlay = document.getElementById('modalOverlay');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalReason = document.getElementById('modalReason');
-    const modalScore = document.getElementById('modalScore');
-    const playAgainBtn = document.getElementById('playAgainBtn');
-
-    // Design System Palette Tokens (from game/DESIGNS.md)
-    const PALETTE = {
-      night950: 0x071326,
-      night900: 0x0B1D35,
-      night800: 0x102B49,
-      blue700:  0x16466A,
-      blue500:  0x267FA0,
-      teal300:  0x63C6C8,
-      moon100:  0xFFF0B7,
-      star100:  0xF7F7FF,
-      lavender200: 0xC6B9E8,
-      violet900: 0x29233F,
-      ink950:   0x171923,
-      mist100:  0xE9EDF2,
-      warmGold: 0xFBBF24,
-      warmAmber: 0xF59E0B,
+    const NIGHT_INFO = {
+      1: { name: 'Đêm 1 · Đảo Bến', speech: 'Ông Đăng: "Mây ơi, sương đen đã phủ kín Đảo Bến. Hãy gom 10 đom đóm để thắp lại 5 ngọn Đèn Lồng Lớn trước bình minh!"' },
+      2: { name: 'Đêm 2 · Đảo Cau', speech: 'Ông Đăng: "Hai hòn đảo nối bằng cầu tre mỏng manh. Cẩn thận Gió Lạc rình rập cướp ánh sáng và tận dụng Bùa Gió nhé!"' },
+      3: { name: 'Đêm 3 · Đảo Chuông', speech: 'Ông Đăng: "Đảo Chuông ba tầng cao gió lộng. Hãy leo dốc, phóng bục nhảy lên Tháp Chuông và thắp sáng cả 7 ngọn đèn để đón Bình Minh!"' },
     };
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(PALETTE.night950);
-    scene.fog = new THREE.FogExp2(PALETTE.night950, 0.0175);
+    // Persisted Settings
+    const settings = {
+      volume: Number(localStorage.getItem('ddl_volume') ?? 60),
+      sensitivity: Number(localStorage.getItem('ddl_sens') ?? 45),
+    };
+    const volSlider = document.getElementById('volSlider');
+    const sensSlider = document.getElementById('sensSlider');
+    volSlider.value = settings.volume;
+    sensSlider.value = settings.sensitivity;
 
-    const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 280);
+    // Procedural Web Audio API (no external audio files needed)
+    let audioCtx = null;
+    let ambientGain = null;
+    function ensureAudio() {
+      if (!audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        audioCtx = new AC();
+        ambientGain = audioCtx.createGain();
+        ambientGain.gain.value = (settings.volume / 100) * 0.08;
+        ambientGain.connect(audioCtx.destination);
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        osc1.type = 'sine'; osc1.frequency.value = 110;
+        osc2.type = 'triangle'; osc2.frequency.value = 164.81;
+        osc1.connect(ambientGain); osc2.connect(ambientGain);
+        osc1.start(); osc2.start();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function playTone(freq, dur = 0.14, type = 'sine', volScale = 0.18, slideTo = null) {
+      if (!audioCtx || settings.volume <= 0) return;
+      const now = audioCtx.currentTime;
+      const g = audioCtx.createGain();
+      const o = audioCtx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, now);
+      if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+      g.gain.setValueAtTime((settings.volume / 100) * volScale, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(now); o.stop(now + dur);
+    }
+    const SFX = {
+      pickup: () => playTone(660, 0.12, 'sine', 0.16, 990),
+      lantern: () => { playTone(440, 0.28, 'triangle', 0.22, 660); setTimeout(() => playTone(880, 0.35, 'sine', 0.2), 110); },
+      pulse: () => playTone(520, 0.3, 'sine', 0.22, 220),
+      hit: () => playTone(160, 0.25, 'sawtooth', 0.22, 80),
+      jump: () => playTone(280, 0.12, 'sine', 0.14, 460),
+      dash: () => playTone(420, 0.14, 'triangle', 0.16, 760),
+      spawn: () => playTone(140, 0.35, 'triangle', 0.14, 100),
+      won: () => { playTone(523, 0.2, 'sine', 0.2); setTimeout(() => playTone(659, 0.2, 'sine', 0.2), 140); setTimeout(() => playTone(784, 0.35, 'sine', 0.22), 280); },
+      lost: () => { playTone(320, 0.25, 'triangle', 0.2, 220); setTimeout(() => playTone(200, 0.4, 'sawtooth', 0.18, 120), 200); },
+      tick10: () => playTone(880, 0.07, 'square', 0.08),
+    };
+
+    // UI Elements
+    const moteSlotsEl = document.getElementById('moteSlots');
+    for (let i = 0; i < 10; i++) {
+      const div = document.createElement('div');
+      div.className = 'mote-slot';
+      moteSlotsEl.appendChild(div);
+    }
+    const hudFlames = document.getElementById('hudFlames');
+    const hudNightLabel = document.getElementById('hudNightLabel');
+    const hudTimer = document.getElementById('hudTimer');
+    const hudLanterns = document.getElementById('hudLanterns');
+    const hudScore = document.getElementById('hudScore');
+    const dashBadge = document.getElementById('dashBadge');
+    const dashCd = document.getElementById('dashCd');
+    const pulseBadge = document.getElementById('pulseBadge');
+    const pulseCd = document.getElementById('pulseCd');
+    const charmBadge = document.getElementById('charmBadge');
+    const charmCd = document.getElementById('charmCd');
+    const promptBanner = document.getElementById('promptBanner');
+    const windBanner = document.getElementById('windBanner');
+    const offscreenArrow = document.getElementById('offscreenArrow');
+
+    const mainMenuOverlay = document.getElementById('mainMenuOverlay');
+    const introOverlay = document.getElementById('introOverlay');
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const settingsOverlay = document.getElementById('settingsOverlay');
+    const resultOverlay = document.getElementById('resultOverlay');
+
+    // Campaign state
+    let mode = 'menu'; // menu | intro | playing | paused | result
+    let currentNight = 1;
+    let campaignScore = 0;
+    let settingsReturnMode = 'menu';
+    let lastCountdownSec = -1;
+    let lastSeenTick = -1;
+
+    // Three.js Setup using Ticket-02 Standardized Palette
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0E1430);
+    scene.fog = new THREE.FogExp2(0x1B2350, 0.014);
+
+    const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 300);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
-    // Ambient & Moon Directional Lights (Section 3.2: blue-700 fill + teal-300 / moon-100 rim)
-    const ambientLight = new THREE.AmbientLight(PALETTE.blue700, 1.35);
+    const ambientLight = new THREE.AmbientLight(0xFFF6C2, 0.15);
     scene.add(ambientLight);
-    const hemiLight = new THREE.HemisphereLight(PALETTE.teal300, PALETTE.night950, 0.55);
-    scene.add(hemiLight);
-    const moonLight = new THREE.DirectionalLight(PALETTE.moon100, 0.9);
-    moonLight.position.set(36, 52, -78);
+    const moonLight = new THREE.DirectionalLight(0xFFE9B0, 0.85);
+    moonLight.position.set(40, 60, -70);
     scene.add(moonLight);
 
-    // 1. Celestial Sky Dome: Dense Star Field (stone.jpg / blinking_light.jpg) & Glowing Full Moon (noel_moon.jpg)
-    const starCount = 720;
-    const starPositions = new Float32Array(starCount * 3);
-    const starColors = new Float32Array(starCount * 3);
-    const cStar = new THREE.Color(PALETTE.star100);
-    const cMoon = new THREE.Color(PALETTE.moon100);
-    const cTeal = new THREE.Color(PALETTE.teal300);
+    // Sea of Clouds (#12384A) + Starry Sky
+    const cloudSea = new THREE.Mesh(
+      new THREE.CircleGeometry(220, 64),
+      new THREE.MeshStandardMaterial({ color: 0x12384A, roughness: 0.95 })
+    );
+    cloudSea.rotation.x = -Math.PI / 2;
+    cloudSea.position.y = -10.5;
+    scene.add(cloudSea);
 
-    for (let i = 0; i < starCount; i++) {
-      // Deterministic pseudo-random sky distribution
-      const u = ((i * 73 + 19) % 997) / 997;
-      const v = ((i * 151 + 43) % 991) / 991;
-      const theta = u * Math.PI * 2;
-      const phi = 0.08 + v * (Math.PI * 0.42);
-      const r = 135 + (i % 7) * 4;
-      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
-      starPositions[i * 3 + 1] = r * Math.cos(phi) + 8;
-      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
-
-      const pick = i % 5 === 0 ? cMoon : (i % 7 === 0 ? cTeal : cStar);
-      starColors[i * 3] = pick.r;
-      starColors[i * 3 + 1] = pick.g;
-      starColors[i * 3 + 2] = pick.b;
+    const starPos = new Float32Array(500 * 3);
+    for (let i = 0; i < 500; i++) {
+      const a = ((i * 73) % 997) / 997 * Math.PI * 2;
+      const p = 0.08 + (((i * 151) % 991) / 991) * 1.2;
+      starPos[i * 3] = 150 * Math.sin(p) * Math.cos(a);
+      starPos[i * 3 + 1] = 150 * Math.cos(p) + 12;
+      starPos[i * 3 + 2] = 150 * Math.sin(p) * Math.sin(a);
     }
     const starGeo = new THREE.BufferGeometry();
-    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-    const starMat = new THREE.PointsMaterial({
-      size: 0.95,
-      vertexColors: true,
-      transparent: true,
-      opacity: 0.9,
-      fog: false,
-    });
-    const starField = new THREE.Points(starGeo, starMat);
-    scene.add(starField);
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xF5F1E6, size: 0.9, fog: false })));
 
-    // Prominent Glowing Full Moon (noel_moon.jpg)
-    const moonGroup = new THREE.Group();
-    const moonCore = new THREE.Mesh(
-      new THREE.SphereGeometry(7.2, 32, 32),
-      new THREE.MeshBasicMaterial({ color: PALETTE.moon100, fog: false })
-    );
-    const moonHaloInner = new THREE.Mesh(
-      new THREE.SphereGeometry(9.6, 28, 28),
-      new THREE.MeshBasicMaterial({
-        color: PALETTE.moon100,
-        transparent: true,
-        opacity: 0.22,
-        fog: false,
-      })
-    );
-    const moonHaloOuter = new THREE.Mesh(
-      new THREE.SphereGeometry(13.5, 24, 24),
-      new THREE.MeshBasicMaterial({
-        color: PALETTE.teal300,
-        transparent: true,
-        opacity: 0.1,
-        fog: false,
-      })
-    );
-    moonGroup.add(moonCore, moonHaloInner, moonHaloOuter);
-    moonGroup.position.set(36, 50, -96);
-    scene.add(moonGroup);
+    // Map Environment Group (rebuilt per Night 1/2/3)
+    const mapGroup = new THREE.Group();
+    scene.add(mapGroup);
+    let builtMapNight = 0;
 
-    // 2. Moonlit Mountain Lake & Distant Horizon Silhouettes (lake.jpg)
-    const waterMesh = new THREE.Mesh(
-      new THREE.CircleGeometry(155, 72),
-      new THREE.MeshStandardMaterial({
-        color: PALETTE.night900,
-        roughness: 0.35,
-        metalness: 0.45,
-      })
-    );
-    waterMesh.rotation.x = -Math.PI / 2;
-    waterMesh.position.y = -0.32;
-    scene.add(waterMesh);
+    function buildNightEnvironment(night) {
+      if (builtMapNight === night) return;
+      builtMapNight = night;
+      while (mapGroup.children.length > 0) mapGroup.remove(mapGroup.children[0]);
 
-    // Rippled Moon Reflection Strips on the Lake (lake.jpg)
-    const waterRipples = [];
-    for (let i = 0; i < 9; i++) {
-      const ripple = new THREE.Mesh(
-        new THREE.BoxGeometry(2.6 + (i % 3) * 1.1, 0.02, 0.28),
-        new THREE.MeshBasicMaterial({
-          color: i % 2 === 0 ? PALETTE.moon100 : PALETTE.teal300,
-          transparent: true,
-          opacity: 0.32,
-        })
-      );
-      ripple.position.set(16 + i * 2.1, -0.28, -46 - i * 4.2);
-      ripple.rotation.y = -0.38;
-      scene.add(ripple);
-      waterRipples.push(ripple);
-    }
+      const grassMat = new THREE.MeshStandardMaterial({ color: 0x2F5D50, roughness: 0.9 });
+      const sandMat = new THREE.MeshStandardMaterial({ color: 0xC9B48A, roughness: 0.88 });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x6B4A2F, roughness: 0.85 });
 
-    // Distant Layered Mountain Horizon Ring (lake.jpg — blue-700 & night-900 silhouettes)
-    const mountainGroup = new THREE.Group();
-    const mountainCount = 28;
-    for (let i = 0; i < mountainCount; i++) {
-      const ang = (i / mountainCount) * Math.PI * 2;
-      const dist = 104 + (i % 3) * 9;
-      const height = 18 + ((i * 7) % 16);
-      const width = 16 + ((i * 5) % 10);
-      const mt = new THREE.Mesh(
-        new THREE.ConeGeometry(width, height, 5),
-        new THREE.MeshStandardMaterial({
-          color: i % 2 === 0 ? PALETTE.blue700 : PALETTE.night900,
-          roughness: 0.95,
-          flatShading: true,
-        })
-      );
-      mt.position.set(Math.sin(ang) * dist, height * 0.42 - 1.0, Math.cos(ang) * dist);
-      mt.rotation.y = ang;
-      mountainGroup.add(mt);
-    }
-    scene.add(mountainGroup);
-
-    // 3. Island Terrain & Storybook Nature Silhouettes (tree.jpg, stone.jpg, bush.jpg)
-    const islandGroup = new THREE.Group();
-    const mainGround = new THREE.Mesh(
-      new THREE.CylinderGeometry(42, 43.8, 1.2, 72),
-      new THREE.MeshStandardMaterial({ color: PALETTE.night800, roughness: 0.92 })
-    );
-    mainGround.position.y = -0.6;
-    islandGroup.add(mainGround);
-
-    const shoreRim = new THREE.Mesh(
-      new THREE.RingGeometry(40.8, 42.1, 72),
-      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, side: THREE.DoubleSide, roughness: 0.9 })
-    );
-    shoreRim.rotation.x = -Math.PI / 2;
-    shoreRim.position.y = 0.01;
-    islandGroup.add(shoreRim);
-
-    const innerPathRing = new THREE.Mesh(
-      new THREE.RingGeometry(23.2, 24.8, 72),
-      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, side: THREE.DoubleSide, roughness: 0.86 })
-    );
-    innerPathRing.rotation.x = -Math.PI / 2;
-    innerPathRing.position.y = 0.02;
-    islandGroup.add(innerPathRing);
-
-    const centerPlaza = new THREE.Mesh(
-      new THREE.CircleGeometry(4.2, 36),
-      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.85 })
-    );
-    centerPlaza.rotation.x = -Math.PI / 2;
-    centerPlaza.position.y = 0.02;
-    islandGroup.add(centerPlaza);
-
-    // Radial Stepping Stones from Center Plaza to the 5 Great Lanterns
-    for (let k = 0; k < 5; k++) {
-      const ang = (k * 72 * Math.PI) / 180;
-      for (let r = 6; r <= 21; r += 2.5) {
-        const stone = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.62, 0.72, 0.08, 7),
-          new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.88 })
-        );
-        stone.position.set(Math.sin(ang) * r, 0.02, Math.cos(ang) * r);
-        stone.rotation.y = r + k;
-        islandGroup.add(stone);
-      }
-    }
-
-    // Landmark Lone Tree Silhouette near Center Plaza (tree.jpg — offset so (0,0,0) spawn stays clear)
-    function createLoneTreeLandmark() {
-      const tree = new THREE.Group();
-      const trunkMat = new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.9 });
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.58, 4.2, 9), trunkMat);
-      trunk.position.y = 2.1;
-      tree.add(trunk);
-
-      const branchConfigs = [
-        { x: 0.9, y: 3.4, z: 0.4, rz: -0.55, rx: 0.2, len: 2.0 },
-        { x: -0.85, y: 3.2, z: -0.3, rz: 0.52, rx: -0.18, len: 1.9 },
-        { x: 0.2, y: 3.6, z: -0.85, rz: -0.15, rx: -0.5, len: 1.8 },
-      ];
-      for (const b of branchConfigs) {
-        const br = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, b.len, 7), trunkMat);
-        br.position.set(b.x, b.y, b.z);
-        br.rotation.set(b.rx, 0, b.rz);
-        tree.add(br);
-      }
-
-      const canopyClusters = [
-        { x: 0, y: 4.9, z: 0, r: 2.1, col: PALETTE.night900 },
-        { x: 1.45, y: 4.3, z: 0.55, r: 1.45, col: PALETTE.blue700 },
-        { x: -1.4, y: 4.1, z: -0.45, r: 1.4, col: PALETTE.night900 },
-        { x: 0.3, y: 4.4, z: -1.3, r: 1.35, col: PALETTE.blue700 },
-        { x: -0.4, y: 5.5, z: 0.5, r: 1.3, col: PALETTE.blue500 },
-      ];
-      for (const c of canopyClusters) {
-        const leaf = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(c.r, 1),
-          new THREE.MeshStandardMaterial({ color: c.col, roughness: 0.88, flatShading: true })
-        );
-        leaf.position.set(c.x, c.y, c.z);
-        leaf.scale.y = 0.72;
-        tree.add(leaf);
-      }
-      tree.position.set(-4.8, 0, -4.6);
-      return tree;
-    }
-    islandGroup.add(createLoneTreeLandmark());
-
-    // Mysterious Standing Stones (stone.jpg — between lantern spokes)
-    for (let k = 0; k < 5; k++) {
-      const ang = ((k * 72 + 36) * Math.PI) / 180;
-      const dist = 16.5;
-      const stoneGroup = new THREE.Group();
-      const tallStone = new THREE.Mesh(
-        new THREE.BoxGeometry(1.1, 3.1, 0.75),
-        new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.92 })
-      );
-      tallStone.position.y = 1.55;
-      tallStone.rotation.z = 0.04;
-
-      const runeStrip = new THREE.Mesh(
-        new THREE.BoxGeometry(0.14, 1.3, 0.78),
-        new THREE.MeshBasicMaterial({ color: PALETTE.teal300, transparent: true, opacity: 0.45 })
-      );
-      runeStrip.position.y = 1.6;
-
-      const sideStone = new THREE.Mesh(
-        new THREE.DodecahedronGeometry(0.75, 0),
-        new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.9, flatShading: true })
-      );
-      sideStone.position.set(0.85, 0.55, 0.25);
-
-      stoneGroup.add(tallStone, runeStrip, sideStone);
-      stoneGroup.position.set(Math.sin(ang) * dist, 0, Math.cos(ang) * dist);
-      stoneGroup.rotation.y = ang + 0.4;
-      islandGroup.add(stoneGroup);
-    }
-
-    // Perimeter Pines & Layered Bushes (lake.jpg & bush.jpg — around outer rim R = 34..39.5m)
-    for (let i = 0; i < 24; i++) {
-      const ang = (i / 24) * Math.PI * 2 + 0.13;
-      const r = 35.5 + (i % 3) * 1.6;
-      const px = Math.sin(ang) * r;
-      const pz = Math.cos(ang) * r;
-
-      if (i % 2 === 0) {
-        //Layered Pine Silhouette
-        const pine = new THREE.Group();
-        const trunk = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.18, 0.26, 1.2, 7),
-          new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.9 })
-        );
-        trunk.position.y = 0.6;
-        pine.add(trunk);
-
-        const tiers = [
-          { y: 1.7, rad: 1.35, h: 1.9, col: PALETTE.night900 },
-          { y: 2.8, rad: 1.05, h: 1.7, col: PALETTE.blue700 },
-          { y: 3.8, rad: 0.72, h: 1.4, col: PALETTE.night900 },
-        ];
-        for (const t of tiers) {
-          const cone = new THREE.Mesh(
-            new THREE.ConeGeometry(t.rad, t.h, 8),
-            new THREE.MeshStandardMaterial({ color: t.col, roughness: 0.88, flatShading: true })
-          );
-          cone.position.y = t.y;
-          pine.add(cone);
+      if (night === 1) {
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(40, 41, 1.5, 64), grassMat);
+        g.position.y = -0.75;
+        const rim = new THREE.Mesh(new THREE.RingGeometry(37, 40, 64), sandMat);
+        rim.rotation.x = -Math.PI / 2; rim.position.y = 0.02;
+        mapGroup.add(g, rim);
+      } else if (night === 2) {
+        for (const cx of [0, 70]) {
+          const isl = new THREE.Mesh(new THREE.CylinderGeometry(28, 29, 1.5, 48), grassMat);
+          isl.position.set(cx, -0.75, 0);
+          const rim = new THREE.Mesh(new THREE.RingGeometry(25.5, 28, 48), sandMat);
+          rim.rotation.x = -Math.PI / 2; rim.position.set(cx, 0.02, 0);
+          mapGroup.add(isl, rim);
         }
-        const scale = 0.85 + (i % 4) * 0.14;
-        pine.scale.set(scale, scale, scale);
-        pine.position.set(px, 0, pz);
-        islandGroup.add(pine);
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(18, 0.4, 4), woodMat);
+        bridge.position.set(35, -0.2, 0);
+        mapGroup.add(bridge);
+        for (const [jx, jz] of [[20, 18], [50, -18]]) {
+          const pad = new THREE.Mesh(
+            new THREE.CylinderGeometry(1.0, 1.1, 0.2, 20),
+            new THREE.MeshBasicMaterial({ color: 0xF2C14E })
+          );
+          pad.position.set(jx, 0.1, jz);
+          mapGroup.add(pad);
+        }
       } else {
-        // Organic Bush Cluster (bush.jpg)
-        const bush = new THREE.Group();
-        const b1 = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(0.95, 1),
-          new THREE.MeshStandardMaterial({ color: PALETTE.night900, roughness: 0.9, flatShading: true })
+        // Night 3: Đảo Chuông (3 Tiers, 2 Ramps, Jump Pad, Bell Tower)
+        const t0 = new THREE.Mesh(new THREE.CylinderGeometry(45, 46, 1.5, 64), grassMat);
+        t0.position.y = -0.75;
+        mapGroup.add(t0);
+
+        const shape = new THREE.Shape();
+        shape.absarc(0, 0, 24, 0, Math.PI, false);
+        shape.absarc(0, 0, 12, Math.PI, 0, true);
+        const t1Geo = new THREE.ExtrudeGeometry(shape, { depth: 3.0, bevelEnabled: false });
+        t1Geo.rotateX(Math.PI / 2);
+        const t1 = new THREE.Mesh(t1Geo, sandMat);
+        t1.position.y = 3.0;
+        mapGroup.add(t1);
+
+        const t2 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 6.0, 36), grassMat);
+        t2.position.y = 3.0;
+        mapGroup.add(t2);
+
+        // Bell Tower (R=2m, H=8m at (0,6,0))
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 8.0, 20), woodMat);
+        tower.position.set(0, 10.0, 0);
+        const roof = new THREE.Mesh(
+          new THREE.ConeGeometry(2.8, 2.0, 8),
+          new THREE.MeshStandardMaterial({ color: 0xC8102E })
         );
-        b1.position.set(0, 0.55, 0);
-        b1.scale.y = 0.7;
-        const b2 = new THREE.Mesh(
-          new THREE.DodecahedronGeometry(0.68, 1),
-          new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.9, flatShading: true })
+        roof.position.set(0, 15.0, 0);
+        mapGroup.add(tower, roof);
+
+        // 2 Ramps at 30 deg & 150 deg (r=30 Y=0 -> r=24 Y=3)
+        for (const deg of [30, 150]) {
+          const rad = (deg * Math.PI) / 180;
+          const ramp = new THREE.Mesh(new THREE.BoxGeometry(3.0, 0.35, 6.7), woodMat);
+          const midR = 27.0;
+          ramp.position.set(midR * Math.cos(rad), 1.45, midR * Math.sin(rad));
+          ramp.rotation.y = Math.atan2(Math.cos(rad), Math.sin(rad));
+          ramp.rotation.x = Math.atan2(3.0, 6.0);
+          mapGroup.add(ramp);
+        }
+
+        const pad3 = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.0, 1.1, 0.2, 20),
+          new THREE.MeshBasicMaterial({ color: 0xF2C14E })
         );
-        b2.position.set(0.65, 0.42, 0.25);
-        b2.scale.y = 0.7;
-        bush.add(b1, b2);
-        bush.position.set(px, 0, pz);
-        bush.rotation.y = ang;
-        islandGroup.add(bush);
+        pad3.position.set(0, 3.1, 13);
+        mapGroup.add(pad3);
       }
     }
-    scene.add(islandGroup);
 
-    // Creative Feature (Visual-only, zero impact on headless):
-    // Shoreline Floating Lotus Lanterns (Đèn Hoa Đăng Bến Nước)
-    const lotusLanterns = [];
-    for (let i = 0; i < 10; i++) {
-      const ang = (i / 10) * Math.PI * 2;
-      const r = 43.4;
-      const g = new THREE.Group();
-      const petals = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.5, 0.3, 0.15, 10),
-        new THREE.MeshStandardMaterial({ color: PALETTE.lavender200, roughness: 0.55 })
-      );
-      const core = new THREE.Mesh(
-        new THREE.SphereGeometry(0.22, 12, 12),
-        new THREE.MeshStandardMaterial({ color: PALETTE.blue700, emissive: 0x000000 })
-      );
-      core.position.y = 0.16;
-      g.add(petals, core);
-      g.position.set(Math.sin(ang) * r, -0.22, Math.cos(ang) * r);
-      scene.add(g);
-      lotusLanterns.push({ group: g, core, angle: ang });
-    }
-
-    // 4. Mây (Player Character — double_character.jpg & conical_hat.jpg)
+    // Mây Character (#E8E2D0 cloak, #C8102E scarf, nón lá, hanging lantern)
     const playerGroup = new THREE.Group();
-
-    // Storybook Cloaked Body (blue-500 outer cloak + blue-700 hem)
-    const cloakHem = new THREE.Mesh(
-      new THREE.ConeGeometry(0.54, 0.45, 18),
-      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.7 })
+    const cloak = new THREE.Mesh(
+      new THREE.ConeGeometry(0.5, 1.2, 16),
+      new THREE.MeshStandardMaterial({ color: 0xE8E2D0, roughness: 0.65 })
     );
-    cloakHem.position.y = 0.24;
-    playerGroup.add(cloakHem);
-
-    const cloakBody = new THREE.Mesh(
-      new THREE.ConeGeometry(0.48, 1.05, 18),
-      new THREE.MeshStandardMaterial({ color: PALETTE.blue500, roughness: 0.65 })
+    cloak.position.y = 0.6;
+    const scarf = new THREE.Mesh(
+      new THREE.TorusGeometry(0.25, 0.07, 8, 20),
+      new THREE.MeshStandardMaterial({ color: 0xC8102E })
     );
-    cloakBody.position.y = 0.68;
-    playerGroup.add(cloakBody);
-
-    // Storybook Collar / Hood Ring
-    const scarfRing = new THREE.Mesh(
-      new THREE.TorusGeometry(0.24, 0.065, 10, 20),
-      new THREE.MeshStandardMaterial({ color: PALETTE.moon100, roughness: 0.6 })
+    scarf.rotation.x = Math.PI / 2; scarf.position.y = 1.1;
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.24, 16, 16),
+      new THREE.MeshStandardMaterial({ color: 0xFFE9B0 })
     );
-    scarfRing.rotation.x = Math.PI / 2;
-    scarfRing.position.y = 1.1;
-    playerGroup.add(scarfRing);
-
-    // Head & Storybook Eyes
-    const headMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.25, 18, 18),
-      new THREE.MeshStandardMaterial({ color: PALETTE.moon100, roughness: 0.55 })
+    head.position.y = 1.28;
+    const hat = new THREE.Mesh(
+      new THREE.ConeGeometry(0.66, 0.36, 20),
+      new THREE.MeshStandardMaterial({ color: 0xC9B48A })
     );
-    headMesh.position.y = 1.28;
-    playerGroup.add(headMesh);
-
-    const eyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.ink950 });
-    const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
-    leftEye.position.set(0.085, 1.29, 0.22);
-    const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
-    rightEye.position.set(-0.085, 1.29, 0.22);
-    playerGroup.add(leftEye, rightEye);
-
-    // Conical Hat (Nón lá — conical_hat.jpg: wide woven cone, moon-100 rim, radial ribs)
-    const nonLaGroup = new THREE.Group();
-    const nonLaCone = new THREE.Mesh(
-      new THREE.ConeGeometry(0.68, 0.38, 24),
-      new THREE.MeshStandardMaterial({ color: 0xEAB308, roughness: 0.68 })
+    hat.position.y = 1.52;
+    const handOrb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 10, 10),
+      new THREE.MeshBasicMaterial({ color: 0xFFF6C2 })
     );
-    const nonLaRim = new THREE.Mesh(
-      new THREE.TorusGeometry(0.67, 0.022, 8, 28),
-      new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
-    );
-    nonLaRim.rotation.x = Math.PI / 2;
-    nonLaRim.position.y = -0.18;
-
-    const floralBand = new THREE.Mesh(
-      new THREE.TorusGeometry(0.32, 0.02, 8, 24),
-      new THREE.MeshBasicMaterial({ color: PALETTE.lavender200 })
-    );
-    floralBand.rotation.x = Math.PI / 2;
-    floralBand.position.y = 0.0;
-
-    nonLaGroup.add(nonLaCone, nonLaRim, floralBand);
-    nonLaGroup.position.y = 1.54;
-    playerGroup.add(nonLaGroup);
-
-    // Forward Lantern Rod & Hanging Hand Lantern (+Z forward for clear heading)
-    const lanternRod = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.02, 0.02, 0.45, 8),
-      new THREE.MeshStandardMaterial({ color: PALETTE.ink950 })
-    );
-    lanternRod.rotation.x = Math.PI / 2;
-    lanternRod.position.set(0.0, 1.18, 0.42);
-    playerGroup.add(lanternRod);
-
-    const miniLanternCap = new THREE.Mesh(
-      new THREE.ConeGeometry(0.14, 0.09, 8),
-      new THREE.MeshStandardMaterial({ color: PALETTE.ink950 })
-    );
-    miniLanternCap.position.set(0.0, 1.15, 0.62);
-    playerGroup.add(miniLanternCap);
-
-    const miniLanternOrb = new THREE.Mesh(
-      new THREE.SphereGeometry(0.11, 14, 14),
-      new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
-    );
-    miniLanternOrb.position.set(0.0, 1.05, 0.62);
-    playerGroup.add(miniLanternOrb);
-
-    const miniLanternHalo = new THREE.Mesh(
-      new THREE.SphereGeometry(0.22, 12, 12),
-      new THREE.MeshBasicMaterial({
-        color: PALETTE.warmGold,
-        transparent: true,
-        opacity: 0.3,
-      })
-    );
-    miniLanternHalo.position.set(0.0, 1.05, 0.62);
-    playerGroup.add(miniLanternHalo);
-
-    const handLanternLight = new THREE.PointLight(PALETTE.moon100, 3.4, 13);
-    handLanternLight.position.set(0.0, 1.1, 0.65);
-    playerGroup.add(handLanternLight);
+    handOrb.position.set(0, 1.05, 0.6);
+    const handLight = new THREE.PointLight(0xFFB347, 2.5, 12);
+    handLight.position.set(0, 1.1, 0.65);
+    playerGroup.add(cloak, scarf, head, hat, handOrb, handLight);
     scene.add(playerGroup);
 
-    // Dual-Ring Pulse Burst Visual (Section 5: cool-teal #63C6C8 + moon-gold #FFF0B7)
-    const pulseWaveGroup = new THREE.Group();
-    const pulseOuterRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.68, 0.96, 48),
-      new THREE.MeshBasicMaterial({
-        color: PALETTE.teal300,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.0,
-      })
+    // Pulse Ring Visual
+    const pulseRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.5, 0.9, 48),
+      new THREE.MeshBasicMaterial({ color: 0xFFE58A, side: THREE.DoubleSide, transparent: true, opacity: 0 })
     );
-    pulseOuterRing.rotation.x = -Math.PI / 2;
-    const pulseInnerRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.35, 0.6, 48),
-      new THREE.MeshBasicMaterial({
-        color: PALETTE.moon100,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.0,
-      })
-    );
-    pulseInnerRing.rotation.x = -Math.PI / 2;
-    pulseWaveGroup.add(pulseOuterRing, pulseInnerRing);
-    pulseWaveGroup.position.y = 0.16;
-    scene.add(pulseWaveGroup);
+    pulseRing.rotation.x = -Math.PI / 2;
+    scene.add(pulseRing);
+    let pulseAlpha = 0, pulseScale = 0.5, seenPulseTick = -1000;
 
-    let pulseAnimAlpha = 0.0;
-    let pulseAnimRadius = 0.5;
-    let seenPulseTick = -1000;
+    // Entity Maps
+    const lanternMap = new Map();
+    const moteMap = new Map();
+    const shadeMap = new Map();
+    const drifterMap = new Map();
+    const charmMap = new Map();
 
-    // 5. Entity Sync Caches (Great Lanterns, Fireflies, Shadow Ink)
-    const lanternMeshes = new Map();
-    const moteMeshes = new Map();
-    const shadeMeshes = new Map();
+    function clearEntities() {
+      for (const m of [lanternMap, moteMap, shadeMap, drifterMap, charmMap]) {
+        for (const v of m.values()) scene.remove(v.group || v);
+        m.clear();
+      }
+    }
 
-    function syncLanterns(lanterns, safeRadius, lanternCost, tick) {
-      for (const l of lanterns) {
-        let entry = lanternMeshes.get(l.id);
-        if (!entry) {
-          // Ornate Vintage Street-Lamp / Stone-Wood Lantern Pillar (lamp_post.jpg)
-          const group = new THREE.Group();
-          const basePlinth = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.88, 1.12, 0.45, 8),
-            new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.88 })
+    function syncAllEntities(snap) {
+      // Lanterns
+      for (const l of snap.lanterns) {
+        let e = lanternMap.get(l.id);
+        if (!e) {
+          const g = new THREE.Group();
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.35, 3.0, 10), new THREE.MeshStandardMaterial({ color: 0x6B4A2F }));
+          post.position.y = 1.5;
+          const orb = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), new THREE.MeshStandardMaterial({ color: 0x5B5F6E }));
+          orb.position.y = 3.2;
+          const ring = new THREE.Mesh(
+            new THREE.RingGeometry(5.88, 6.0, 48),
+            new THREE.MeshBasicMaterial({ color: 0xFFB347, side: THREE.DoubleSide, transparent: true, opacity: 0.1 })
           );
-          basePlinth.position.y = 0.22;
-
-          const lowerPost = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.36, 0.52, 0.9, 8),
-            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.75 })
-          );
-          lowerPost.position.y = 0.85;
-
-          const tallColumn = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.2, 0.26, 2.2, 12),
-            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.7 })
-          );
-          tallColumn.position.y = 2.2;
-
-          const lampCrown = new THREE.Mesh(
-            new THREE.ConeGeometry(0.92, 0.55, 8),
-            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.68 })
-          );
-          lampCrown.position.y = 3.85;
-
-          const finial = new THREE.Mesh(
-            new THREE.SphereGeometry(0.14, 10, 10),
-            new THREE.MeshStandardMaterial({ color: PALETTE.teal300, roughness: 0.5 })
-          );
-          finial.position.y = 4.2;
-
-          const orb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.46, 20, 20),
-            new THREE.MeshStandardMaterial({ color: PALETTE.night800, emissive: 0x000000 })
-          );
-          orb.position.y = 3.25;
-
-          const halo = new THREE.Mesh(
-            new THREE.SphereGeometry(0.85, 16, 16),
-            new THREE.MeshBasicMaterial({
-              color: PALETTE.moon100,
-              transparent: true,
-              opacity: 0.0,
-            })
-          );
-          halo.position.y = 3.25;
-
-          // Blinking Star Sparkles around Lit Lantern (blinking_light.jpg)
-          const sparklesGroup = new THREE.Group();
-          for (let s = 0; s < 4; s++) {
-            const sp = new THREE.Mesh(
-              new THREE.OctahedronGeometry(0.1, 0),
-              new THREE.MeshBasicMaterial({ color: s % 2 === 0 ? PALETTE.moon100 : PALETTE.star100 })
-            );
-            const a = (s / 4) * Math.PI * 2;
-            sp.position.set(Math.cos(a) * 0.9, 3.25 + (s % 2) * 0.25, Math.sin(a) * 0.9);
-            sparklesGroup.add(sp);
-          }
-          sparklesGroup.visible = false;
-
-          const safeRing = new THREE.Mesh(
-            new THREE.RingGeometry(safeRadius - 0.12, safeRadius, 56),
-            new THREE.MeshBasicMaterial({
-              color: PALETTE.moon100,
-              side: THREE.DoubleSide,
-              transparent: true,
-              opacity: 0.12,
-            })
-          );
-          safeRing.rotation.x = -Math.PI / 2;
-          safeRing.position.y = 0.04;
-
-          const glow = new THREE.PointLight(PALETTE.warmGold, 0.0, 25);
-          glow.position.y = 3.3;
-
-          group.add(
-            basePlinth,
-            lowerPost,
-            tallColumn,
-            orb,
-            halo,
-            lampCrown,
-            finial,
-            sparklesGroup,
-            safeRing,
-            glow
-          );
-          scene.add(group);
-          entry = { group, orb, halo, sparklesGroup, safeRing, glow };
-          lanternMeshes.set(l.id, entry);
+          ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05;
+          const light = new THREE.PointLight(0xFFB347, 0, 22);
+          light.position.y = 3.3;
+          g.add(post, orb, ring, light);
+          scene.add(g);
+          e = { group: g, orb, ring, light };
+          lanternMap.set(l.id, e);
         }
-
-        entry.group.position.set(l.pos[0], l.pos[1], l.pos[2]);
-        const ratio = Math.min(1.0, l.deposited / Math.max(1, lanternCost));
+        e.group.position.set(l.pos[0], l.pos[1], l.pos[2]);
         if (l.lit) {
-          entry.orb.material.color.setHex(PALETTE.moon100);
-          entry.orb.material.emissive.setHex(PALETTE.warmGold);
-          entry.orb.material.emissiveIntensity = 1.7;
-          entry.halo.material.opacity = 0.24 + (reducedMotion ? 0 : 0.05 * Math.sin(tick * 0.08));
-          entry.sparklesGroup.visible = true;
-          if (!reducedMotion) entry.sparklesGroup.rotation.y = tick * 0.03;
-          entry.glow.intensity = 7.2;
-          entry.safeRing.material.color.setHex(PALETTE.moon100);
-          entry.safeRing.material.opacity = 0.46;
-        } else if (ratio > 0) {
-          entry.orb.material.color.setHex(PALETTE.moon100);
-          entry.orb.material.emissive.setHex(PALETTE.warmAmber);
-          entry.orb.material.emissiveIntensity = 0.65 * ratio;
-          entry.halo.material.opacity = 0.1 * ratio;
-          entry.sparklesGroup.visible = false;
-          entry.glow.intensity = 1.6 * ratio;
-          entry.safeRing.material.color.setHex(PALETTE.teal300);
-          entry.safeRing.material.opacity = 0.18;
+          e.orb.material.color.setHex(0xFFE9B0);
+          e.orb.material.emissive.setHex(0xFFB347);
+          e.light.intensity = 6.5;
+          e.ring.material.opacity = 0.45;
         } else {
-          entry.orb.material.color.setHex(PALETTE.night800);
-          entry.orb.material.emissive.setHex(0x000000);
-          entry.halo.material.opacity = 0.0;
-          entry.sparklesGroup.visible = false;
-          entry.glow.intensity = 0.0;
-          entry.safeRing.material.color.setHex(PALETTE.blue700);
-          entry.safeRing.material.opacity = 0.12;
+          e.orb.material.color.setHex(0x5B5F6E);
+          e.orb.material.emissive.setHex(l.deposited > 0 ? 0xFFB347 : 0x000000);
+          e.orb.material.emissiveIntensity = (l.deposited / 10) * 0.6;
+          e.light.intensity = (l.deposited / 10) * 1.5;
+          e.ring.material.opacity = 0.1;
         }
+      }
+
+      // Motes
+      const mIds = new Set();
+      for (const m of snap.motes || []) {
+        mIds.add(m.id);
+        let g = moteMap.get(m.id);
+        if (!g) {
+          g = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), new THREE.MeshBasicMaterial({ color: 0xFFF6C2 }));
+          scene.add(g);
+          moteMap.set(m.id, g);
+        }
+        g.position.set(m.pos[0], m.pos[1] + 0.55 + 0.15 * Math.sin(snap.tick * 0.08 + m.pos[0]), m.pos[2]);
+      }
+      for (const [id, g] of moteMap.entries()) {
+        if (!mIds.has(id)) { scene.remove(g); moteMap.delete(id); }
+      }
+
+      // Shades (#120A1A body, #7A3CFF rim, #3A3450 stunned)
+      const sIds = new Set();
+      for (const s of snap.shades || []) {
+        sIds.add(s.id);
+        let e = shadeMap.get(s.id);
+        if (!e) {
+          const g = new THREE.Group();
+          const body = new THREE.Mesh(
+            new THREE.ConeGeometry(0.65, 1.8, 12),
+            new THREE.MeshStandardMaterial({ color: 0x120A1A, emissive: 0x7A3CFF, emissiveIntensity: 0.7 })
+          );
+          body.position.y = 0.9;
+          g.add(body);
+          scene.add(g);
+          e = { group: g, body };
+          shadeMap.set(s.id, e);
+        }
+        e.group.position.set(s.pos[0], s.pos[1] - 1.0, s.pos[2]);
+        const stunned = s.state === 'stunned';
+        e.body.material.color.setHex(stunned ? 0x3A3450 : 0x120A1A);
+        e.body.material.emissive.setHex(stunned ? 0x8FA3B8 : 0x7A3CFF);
+      }
+      for (const [id, e] of shadeMap.entries()) {
+        if (!sIds.has(id)) { scene.remove(e.group); shadeMap.delete(id); }
+      }
+
+      // Drifters (#8FA3B8 silk ribbon)
+      const dIds = new Set();
+      for (const d of snap.drifters || []) {
+        if (d.state === 'removed') continue;
+        dIds.add(d.id);
+        let g = drifterMap.get(d.id);
+        if (!g) {
+          g = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.18, 0.5),
+            new THREE.MeshStandardMaterial({ color: 0x8FA3B8, emissive: 0x8FA3B8, emissiveIntensity: 0.45 })
+          );
+          scene.add(g);
+          drifterMap.set(d.id, g);
+        }
+        g.position.set(d.pos[0], d.pos[1] + 0.3 * Math.sin(snap.tick * 0.12), d.pos[2]);
+        g.rotation.y = snap.tick * 0.08;
+      }
+      for (const [id, g] of drifterMap.entries()) {
+        if (!dIds.has(id)) { scene.remove(g); drifterMap.delete(id); }
+      }
+
+      // Wind Charms (#C8102E red + #F2C14E gold border)
+      const charmPositions = snap.night === 2
+        ? { C1: [35, 0, 0] }
+        : snap.night === 3 ? { C1: [30, 0, 25], C2: [-30, 0, 25] } : {};
+      const cIds = new Set();
+      for (const c of snap.charms || []) {
+        if (!c.available || !charmPositions[c.id]) continue;
+        cIds.add(c.id);
+        let g = charmMap.get(c.id);
+        if (!g) {
+          g = new THREE.Mesh(
+            new THREE.BoxGeometry(0.45, 0.75, 0.08),
+            new THREE.MeshStandardMaterial({ color: 0xC8102E, emissive: 0xF2C14E, emissiveIntensity: 0.45 })
+          );
+          scene.add(g);
+          charmMap.set(c.id, g);
+        }
+        const [cx, cy, cz] = charmPositions[c.id];
+        g.position.set(cx, cy + 0.9 + 0.15 * Math.sin(snap.tick * 0.07), cz);
+        g.rotation.y = snap.tick * 0.04;
+      }
+      for (const [id, g] of charmMap.entries()) {
+        if (!cIds.has(id)) { scene.remove(g); charmMap.delete(id); }
       }
     }
 
-    function syncMotes(motes, tick) {
-      const activeIds = new Set();
-      for (const m of motes) {
-        activeIds.add(m.id);
-        let entry = moteMeshes.get(m.id);
-        if (!entry) {
-          // Firefly Mote with Moon-100 Core & Warm Glow Halo (blinking_light.jpg)
-          const group = new THREE.Group();
-          const core = new THREE.Mesh(
-            new THREE.SphereGeometry(0.16, 12, 12),
-            new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
-          );
-          const halo = new THREE.Mesh(
-            new THREE.SphereGeometry(0.32, 12, 12),
-            new THREE.MeshBasicMaterial({
-              color: PALETTE.warmGold,
-              transparent: true,
-              opacity: 0.34,
-            })
-          );
-          group.add(core, halo);
-          scene.add(group);
-          entry = { group, halo };
-          moteMeshes.set(m.id, entry);
-        }
-        const phase = tick * 0.08 + m.pos[0] * 0.7 + m.pos[2] * 0.7;
-        const bob = reducedMotion ? 0.6 : 0.6 + 0.18 * Math.sin(phase);
-        const twinkle = reducedMotion ? 1.0 : 0.88 + 0.22 * Math.sin(phase * 1.4);
-        entry.group.position.set(m.pos[0], m.pos[1] + bob, m.pos[2]);
-        entry.group.scale.setScalar(twinkle);
-      }
-      for (const [id, entry] of moteMeshes.entries()) {
-        if (!activeIds.has(id)) {
-          scene.remove(entry.group);
-          moteMeshes.delete(id);
-        }
-      }
-    }
-
-    function syncShades(shades, tick) {
-      const activeIds = new Set();
-      for (const s of shades) {
-        activeIds.add(s.id);
-        let entry = shadeMeshes.get(s.id);
-        if (!entry) {
-          // Storybook Ghost / Shadow Ink Wisp Silhouette (ghost.jpg)
-          const group = new THREE.Group();
-          const headDome = new THREE.Mesh(
-            new THREE.SphereGeometry(0.46, 16, 16),
-            new THREE.MeshStandardMaterial({
-              color: PALETTE.ink950,
-              emissive: PALETTE.violet900,
-              emissiveIntensity: 0.85,
-              roughness: 0.5,
-            })
-          );
-          headDome.position.y = 1.25;
-
-          const cloakSkirt = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.45, 0.72, 1.05, 16),
-            new THREE.MeshStandardMaterial({
-              color: PALETTE.ink950,
-              emissive: PALETTE.violet900,
-              emissiveIntensity: 0.85,
-              roughness: 0.55,
-            })
-          );
-          cloakSkirt.position.y = 0.72;
-
-          const auraShell = new THREE.Mesh(
-            new THREE.SphereGeometry(0.76, 14, 14),
-            new THREE.MeshBasicMaterial({
-              color: PALETTE.violet900,
-              transparent: true,
-              opacity: 0.25,
-            })
-          );
-          auraShell.position.y = 0.95;
-
-          const eyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.lavender200 });
-          const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeMat);
-          eyeL.position.set(0.15, 1.28, 0.41);
-          const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeMat);
-          eyeR.position.set(-0.15, 1.28, 0.41);
-
-          group.add(headDome, cloakSkirt, auraShell, eyeL, eyeR);
-          scene.add(group);
-          entry = { group, headDome, cloakSkirt, auraShell, eyeMat };
-          shadeMeshes.set(s.id, entry);
-        }
-
-        const isStunned = s.state === 'stunned';
-        const floatY = reducedMotion ? 0 : 0.08 * Math.sin(tick * 0.09 + s.pos[0]);
-        const jitterX = isStunned && !reducedMotion ? Math.sin(tick * 1.5) * 0.11 : 0;
-        const jitterZ = isStunned && !reducedMotion ? Math.cos(tick * 1.7) * 0.11 : 0;
-        entry.group.position.set(s.pos[0] + jitterX, floatY, s.pos[2] + jitterZ);
-
-        if (isStunned) {
-          // Pale Lavender / Teal Stunned State (Section 3.2 & 5)
-          entry.headDome.material.color.setHex(PALETTE.lavender200);
-          entry.headDome.material.emissive.setHex(PALETTE.teal300);
-          entry.cloakSkirt.material.color.setHex(PALETTE.lavender200);
-          entry.cloakSkirt.material.emissive.setHex(PALETTE.teal300);
-          entry.auraShell.material.color.setHex(PALETTE.teal300);
-          entry.eyeMat.color.setHex(PALETTE.moon100);
-        } else {
-          entry.headDome.material.color.setHex(PALETTE.ink950);
-          entry.headDome.material.emissive.setHex(PALETTE.violet900);
-          entry.cloakSkirt.material.color.setHex(PALETTE.ink950);
-          entry.cloakSkirt.material.emissive.setHex(PALETTE.violet900);
-          entry.auraShell.material.color.setHex(PALETTE.violet900);
-          entry.eyeMat.color.setHex(PALETTE.lavender200);
-        }
-      }
-      for (const [id, entry] of shadeMeshes.entries()) {
-        if (!activeIds.has(id)) {
-          scene.remove(entry.group);
-          shadeMeshes.delete(id);
-        }
-      }
-    }
-
-    // Controls & Camera Yaw
+    // Input Handling
     const keys = new Set();
-    let latchedJump = false;
-    let latchedInteract = false;
-    let latchedPulse = false;
-    let camYawDeg = 0.0;
-    let dragging = false;
-    let lastMouseX = 0;
+    let latchJump = false, latchInteract = false, latchPulse = false, latchDash = false, latchPause = false;
+    let camYawDeg = 0.0, dragging = false, lastX = 0;
 
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
       keys.add(k);
-      if (e.code === 'Space') {
-        latchedJump = true;
-        e.preventDefault();
+      if (e.code === 'Space') { latchJump = true; e.preventDefault(); }
+      if (k === 'e') latchInteract = true;
+      if (k === 'f' || k === 'j') latchPulse = true;
+      if (e.key === 'Shift') latchDash = true;
+      if (e.key === 'Escape' || k === 'p') {
+        if (mode === 'playing' || mode === 'paused') latchPause = true;
       }
-      if (k === 'e' || k === 'f') latchedInteract = true;
-      if (k === 'shift' || k === 'j') latchedPulse = true;
-      if (k === 'r') resetGame();
     });
     window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
-
-    window.addEventListener('mousedown', (e) => {
-      dragging = true;
-      lastMouseX = e.clientX;
-    });
+    window.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; });
     window.addEventListener('mouseup', () => { dragging = false; });
     window.addEventListener('mousemove', (e) => {
-      if (dragging) {
-        const dx = e.clientX - lastMouseX;
-        lastMouseX = e.clientX;
-        camYawDeg = (camYawDeg + dx * 0.45) % 360;
+      if (dragging && mode === 'playing') {
+        camYawDeg = (camYawDeg + (e.clientX - lastX) * (settings.sensitivity / 100)) % 360;
+        lastX = e.clientX;
       }
     });
     window.addEventListener('resize', () => {
@@ -1027,210 +693,276 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    async function resetGame() {
-      modalOverlay.style.display = 'none';
+    function showIntro(night) {
+      currentNight = night;
+      mode = 'intro';
+      mainMenuOverlay.style.display = 'none';
+      resultOverlay.style.display = 'none';
+      pauseOverlay.style.display = 'none';
+      document.getElementById('introTitle').textContent = NIGHT_INFO[night].name;
+      document.getElementById('introSpeech').textContent = NIGHT_INFO[night].speech;
+      introOverlay.style.display = 'flex';
+    }
+
+    async function startNight(night) {
+      ensureAudio();
+      currentNight = night;
+      clearEntities();
+      const res = await fetch('/api/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ night, seed: 42 }),
+      });
+      const snap = await res.json();
       seenPulseTick = -1000;
-      const res = await fetch('/api/reset', { method: 'POST', body: '{}' });
-      applySnapshot(await res.json());
-    }
-    playAgainBtn.addEventListener('click', resetGame);
-
-    function formatTime(sec) {
-      const s = Math.max(0, Math.ceil(sec));
-      const m = Math.floor(s / 60);
-      const r = s % 60;
-      return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+      lastCountdownSec = -1;
+      lastSeenTick = snap.tick;
+      introOverlay.style.display = 'none';
+      pauseOverlay.style.display = 'none';
+      resultOverlay.style.display = 'none';
+      mode = 'playing';
+      applySnapshot(snap);
     }
 
-    const bgNight950 = new THREE.Color(PALETTE.night950);
-    const bgNight800 = new THREE.Color(PALETTE.night800);
+    // Menu Buttons
+    document.getElementById('startCampaignBtn').onclick = () => { campaignScore = 0; showIntro(1); };
+    document.getElementById('selectN2Btn').onclick = () => { campaignScore = 0; showIntro(2); };
+    document.getElementById('selectN3Btn').onclick = () => { campaignScore = 0; showIntro(3); };
+    document.getElementById('beginNightBtn').onclick = () => startNight(currentNight);
+
+    document.getElementById('resumeBtn').onclick = () => { latchPause = true; };
+    document.getElementById('restartNightBtn').onclick = () => startNight(currentNight);
+    document.getElementById('backToMenuBtn').onclick = () => {
+      mode = 'menu';
+      pauseOverlay.style.display = 'none';
+      mainMenuOverlay.style.display = 'flex';
+    };
+    document.getElementById('openSettingsFromMenuBtn').onclick = () => {
+      settingsReturnMode = 'menu'; mainMenuOverlay.style.display = 'none'; settingsOverlay.style.display = 'flex';
+    };
+    document.getElementById('openSettingsFromPauseBtn').onclick = () => {
+      settingsReturnMode = 'paused'; pauseOverlay.style.display = 'none'; settingsOverlay.style.display = 'flex';
+    };
+    document.getElementById('closeSettingsBtn').onclick = () => {
+      settings.volume = Number(volSlider.value);
+      settings.sensitivity = Number(sensSlider.value);
+      localStorage.setItem('ddl_volume', String(settings.volume));
+      localStorage.setItem('ddl_sens', String(settings.sensitivity));
+      if (ambientGain) ambientGain.gain.value = (settings.volume / 100) * 0.08;
+      settingsOverlay.style.display = 'none';
+      if (settingsReturnMode === 'menu') mainMenuOverlay.style.display = 'flex';
+      else pauseOverlay.style.display = 'flex';
+    };
+    document.getElementById('resultMenuBtn').onclick = () => {
+      mode = 'menu'; resultOverlay.style.display = 'none'; mainMenuOverlay.style.display = 'flex';
+    };
+
+    function formatMMSS(s) {
+      const t = Math.max(0, Math.ceil(s));
+      return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    }
 
     function applySnapshot(snap) {
-      const tuning = snap.tuning || {
-        carry_capacity: 5,
-        lantern_cost: 3,
-        interact_radius: 2.5,
-        pulse_cost: 1,
-        pulse_radius: 6.0,
-        safe_radius: 5.0,
-      };
-
+      buildNightEnvironment(snap.night);
       const [px, py, pz] = snap.player.pos;
       playerGroup.position.set(px, py, pz);
       playerGroup.rotation.y = snap.player_yaw || 0;
-      playerGroup.visible = (snap.player_invuln_s || 0) <= 0 || (snap.tick % 4 < 2);
+      playerGroup.visible = !snap.respawning && (!snap.player.invuln || snap.tick % 4 < 2);
 
-      if (snap.last_pulse_tick && snap.last_pulse_tick !== seenPulseTick && snap.last_pulse_tick > 0) {
+      // Events SFX
+      for (const ev of snap.events || []) {
+        if (ev.name === 'mote_picked') SFX.pickup();
+        else if (ev.name === 'lantern_lit') SFX.lantern();
+        else if (ev.name === 'pulse') SFX.pulse();
+        else if (ev.name === 'player_hit') SFX.hit();
+        else if (ev.name === 'dash') SFX.dash();
+        else if (ev.name === 'shade_spawned') SFX.spawn();
+      }
+
+      if (snap.last_pulse_tick > 0 && snap.last_pulse_tick !== seenPulseTick) {
         seenPulseTick = snap.last_pulse_tick;
-        pulseWaveGroup.position.set(px, 0.16, pz);
-        pulseAnimAlpha = 0.92;
-        pulseAnimRadius = 0.65;
+        pulseRing.position.set(px, py + 0.15, pz);
+        pulseAlpha = 0.9; pulseScale = 0.5;
       }
 
-      syncLanterns(snap.lanterns, tuning.safe_radius, tuning.lantern_cost, snap.tick);
-      syncMotes(snap.motes || [], snap.tick);
-      syncShades(snap.shades || [], snap.tick);
+      syncAllEntities(snap);
 
-      // Section 5: Dynamic Island Illumination (night-950 -> night-800/blue-700 as lanterns light)
+      // Ticket-02 Ambient Light Formula: 0.15 + 0.55 * (lit / total)
       const litCount = snap.lanterns.filter((l) => l.lit).length;
-      const totalLanterns = Math.max(1, snap.lanterns.length);
-      const progress = litCount / totalLanterns;
+      const ratio = litCount / Math.max(1, snap.lanterns.length);
+      ambientLight.intensity = 0.15 + 0.55 * ratio;
+      scene.fog.density = 0.015 - ratio * 0.008;
 
-      scene.background.lerpColors(bgNight950, bgNight800, progress * 0.75);
-      scene.fog.color.copy(scene.background);
-      scene.fog.density = 0.0175 - progress * 0.0105;
-      ambientLight.intensity = 1.35 + progress * 1.45;
-      moonLight.intensity = 0.9 + progress * 0.65;
-
-      // Gentle Star Twinkle & Lake Moon Shimmer
-      if (!reducedMotion) {
-        starMat.opacity = 0.82 + 0.14 * Math.sin(snap.tick * 0.04);
-        waterRipples.forEach((rp, idx) => {
-          rp.scale.x = 0.85 + 0.25 * Math.sin(snap.tick * 0.06 + idx);
-        });
-      }
-
-      lotusLanterns.forEach((lotus, idx) => {
-        const active = idx < litCount * 2;
-        lotus.core.material.color.setHex(active ? PALETTE.moon100 : PALETTE.blue700);
-        lotus.core.material.emissive.setHex(active ? PALETTE.warmGold : 0x000000);
-        if (!reducedMotion) {
-          lotus.group.position.y = -0.22 + 0.05 * Math.sin(snap.tick * 0.05 + idx);
+      // HUD
+      hudFlames.textContent = `${'🔥'.repeat(Math.max(0, snap.player.flames))} (${snap.player.flames})`;
+      hudNightLabel.textContent = NIGHT_INFO[snap.night].name;
+      hudTimer.textContent = formatMMSS(snap.time_left_s);
+      if (snap.time_left_s <= 30.0) {
+        hudTimer.classList.add('urgent');
+        const sec = Math.ceil(snap.time_left_s);
+        if (sec <= 10 && sec > 0 && sec !== lastCountdownSec && mode === 'playing') {
+          lastCountdownSec = sec; SFX.tick10();
         }
-      });
-
-      // HUD Updates
-      const flames = snap.player.flames;
-      hudFlames.textContent = `${'🔥'.repeat(Math.max(0, flames))} (${flames})`;
-      hudCarried.textContent = `${snap.player.carried} / ${tuning.carry_capacity}`;
-      hudLanterns.textContent = `${litCount} / ${snap.lanterns.length}`;
-      hudTime.textContent = formatTime(snap.time_left_s);
-      hudScore.textContent = String(snap.score);
-
-      const cd = snap.pulse_cooldown_s || 0;
-      if (cd > 0.05) {
-        hudPulse.textContent = `Hồi chiêu ${cd.toFixed(1)}s`;
-        hudPulse.classList.remove('cool');
-        hudPulse.classList.add('danger');
-      } else if (snap.player.carried < tuning.pulse_cost) {
-        hudPulse.textContent = `Cần ${tuning.pulse_cost} đom đóm`;
-        hudPulse.classList.remove('cool');
-        hudPulse.classList.add('danger');
       } else {
-        hudPulse.textContent = `Sẵn sàng [Shift / J]`;
-        hudPulse.classList.remove('danger');
-        hudPulse.classList.add('cool');
+        hudTimer.classList.remove('urgent');
       }
 
-      // Context prompt near unlit lantern
+      hudLanterns.textContent = `Đèn: ${litCount} / ${snap.lanterns.length}`;
+      hudScore.textContent = `Điểm: ${snap.score}`;
+
+      const slots = moteSlotsEl.children;
+      for (let i = 0; i < 10; i++) {
+        slots[i].classList.toggle('filled', i < snap.player.carried);
+      }
+
+      dashBadge.classList.toggle('cooling', snap.player.dash_cd_s > 0);
+      dashCd.textContent = snap.player.dash_cd_s > 0 ? `${snap.player.dash_cd_s.toFixed(1)}s` : 'Sẵn sàng';
+      pulseBadge.classList.toggle('cooling', snap.player.pulse_cd_s > 0 || snap.player.carried < 3);
+      pulseCd.textContent = snap.player.pulse_cd_s > 0
+        ? `${snap.player.pulse_cd_s.toFixed(1)}s`
+        : (snap.player.carried < 3 ? 'Cần 3' : 'Sẵn sàng');
+      if (snap.player.charm_s > 0) {
+        charmBadge.style.display = 'block';
+        charmCd.textContent = `${snap.player.charm_s.toFixed(1)}s`;
+      } else {
+        charmBadge.style.display = 'none';
+      }
+
+      windBanner.style.display = (snap.wind_warning || snap.wind?.active) ? 'block' : 'none';
+      windBanner.textContent = snap.wind?.active ? '💨 Gió mạnh đang thổi!' : '⚠ Gió mạnh sắp thổi!';
+
+      // Prompt near unlit lantern: "E — Nạp ánh sáng (x/10)"
       let nearLantern = null;
+      let nearestUnlit = null, nearestDist = Infinity;
       for (const l of snap.lanterns) {
         if (!l.lit) {
           const d = Math.hypot(px - l.pos[0], pz - l.pos[2]);
-          if (d <= tuning.interact_radius) {
+          if (d <= 2.0 && (!nearLantern || d < Math.hypot(px - nearLantern.pos[0], pz - nearLantern.pos[2]))) {
             nearLantern = l;
-            break;
           }
+          if (d < nearestDist) { nearestDist = d; nearestUnlit = l; }
         }
       }
       if (nearLantern && snap.state === 'playing') {
         promptBanner.style.display = 'block';
-        promptBanner.textContent =
-          snap.player.carried > 0
-            ? `Nhấn [E] hoặc [F] để nạp đom đóm vào Đèn ${nearLantern.id} (${nearLantern.deposited}/${tuning.lantern_cost})`
-            : `Đèn ${nearLantern.id} (${nearLantern.deposited}/${tuning.lantern_cost}) — Hãy thu thập thêm đom đóm!`;
+        promptBanner.textContent = `E — Nạp ánh sáng (${nearLantern.deposited}/10)`;
       } else {
         promptBanner.style.display = 'none';
       }
 
-      // Modal for Won / Lost
-      if (snap.state === 'won' || snap.state === 'lost') {
-        modalOverlay.style.display = 'flex';
-        if (snap.state === 'won') {
-          modalTitle.textContent = 'Đảo Bến Bừng Sáng! (Thắng)';
-          modalReason.textContent = 'Mây đã thắp sáng cả 5 Đèn Lồng Lớn và xua tan màn sương đêm!';
+      // Camera Follow
+      const rad = (camYawDeg * Math.PI) / 180;
+      camera.position.set(px - Math.sin(rad) * 12, py + 7, pz - Math.cos(rad) * 12);
+      camera.lookAt(px + Math.sin(rad) * 2.5, py + 1.1, pz + Math.cos(rad) * 2.5);
+
+      // Off-screen arrow pointing to nearest unlit lantern
+      if (nearestUnlit && snap.state === 'playing') {
+        const v = new THREE.Vector3(nearestUnlit.pos[0], nearestUnlit.pos[1] + 2.5, nearestUnlit.pos[2]);
+        v.project(camera);
+        const offScreen = v.z > 1 || Math.abs(v.x) > 0.92 || Math.abs(v.y) > 0.92;
+        if (offScreen) {
+          let sx = v.x, sy = v.y;
+          if (v.z > 1) { sx = -sx; sy = -sy; }
+          const ang = Math.atan2(sy, sx);
+          const margin = 42;
+          const cx = window.innerWidth / 2 + Math.cos(ang) * (window.innerWidth / 2 - margin);
+          const cy = window.innerHeight / 2 - Math.sin(ang) * (window.innerHeight / 2 - margin);
+          offscreenArrow.style.display = 'flex';
+          offscreenArrow.style.left = `${cx - 17}px`;
+          offscreenArrow.style.top = `${cy - 17}px`;
+          offscreenArrow.style.transform = `rotate(${(-ang * 180) / Math.PI}deg)`;
         } else {
-          modalTitle.textContent = 'Màn Đêm Khép Lại... (Thua)';
-          modalReason.textContent =
-            snap.game_over_reason === 'dawn'
-              ? 'Trời đã sáng trước khi Mây kịp thắp đủ 5 Đèn Lồng Lớn.'
-              : 'Mây đã cạn hết lửa tâm khi chạm phải Bóng Mực.';
+          offscreenArrow.style.display = 'none';
         }
-        modalScore.textContent = `Tổng điểm: ${snap.score}`;
+      } else {
+        offscreenArrow.style.display = 'none';
       }
 
-      // Third-person camera tracking
-      const rad = (camYawDeg * Math.PI) / 180;
-      const camDist = 11.8;
-      const camHeight = 6.8;
-      camera.position.set(
-        px - Math.sin(rad) * camDist,
-        py + camHeight,
-        pz - Math.cos(rad) * camDist
-      );
-      camera.lookAt(px + Math.sin(rad) * 2.5, py + 1.15, pz + Math.cos(rad) * 2.5);
+      // State transitions: Pause / Won / Lost
+      if (snap.state === 'paused' && mode === 'playing') {
+        mode = 'paused';
+        pauseOverlay.style.display = 'flex';
+      } else if (snap.state === 'playing' && mode === 'paused') {
+        mode = 'playing';
+        pauseOverlay.style.display = 'none';
+      } else if ((snap.state === 'won' || snap.state === 'lost') && mode === 'playing') {
+        mode = 'result';
+        resultOverlay.style.display = 'flex';
+        const btn = document.getElementById('resultPrimaryBtn');
+        if (snap.state === 'won') {
+          SFX.won();
+          campaignScore += snap.score;
+          if (snap.night < 3) {
+            document.getElementById('resultTitle').textContent = `Thắng Đêm ${snap.night}!`;
+            document.getElementById('resultReason').textContent = 'Toàn bộ Đèn Lồng Lớn đã bừng sáng.';
+            document.getElementById('resultScore').textContent = `Điểm Đêm ${snap.night}: ${snap.score} · Tổng: ${campaignScore}`;
+            btn.textContent = `Sang Đêm ${snap.night + 1}`;
+            btn.onclick = () => showIntro(snap.night + 1);
+          } else {
+            document.getElementById('resultTitle').textContent = 'Bình Minh Đã Lên!';
+            document.getElementById('resultReason').textContent = 'Mây đã hoàn thành sứ mệnh thắp sáng cả Ba Hòn Đảo!';
+            document.getElementById('resultScore').textContent = `Tổng điểm chiến dịch: ${campaignScore}`;
+            btn.textContent = 'Chơi lại từ Đêm 1';
+            btn.onclick = () => { campaignScore = 0; showIntro(1); };
+          }
+        } else {
+          SFX.lost();
+          document.getElementById('resultTitle').textContent = `Thất Bại ở Đêm ${snap.night}`;
+          document.getElementById('resultReason').textContent =
+            snap.game_over_reason === 'dawn' ? 'Hết giờ trước khi thắp đủ đèn.' : 'Mây đã mất hết Ngọn Lửa.';
+          document.getElementById('resultScore').textContent = `Điểm Đêm này: ${snap.score}`;
+          btn.textContent = 'Chơi lại Đêm này';
+          btn.onclick = () => startNight(snap.night);
+        }
+      }
     }
 
     let stepping = false;
-    async function gameLoop() {
-      if (keys.has('q') || keys.has('arrowleft')) camYawDeg = (camYawDeg - 1.8) % 360;
-      if (keys.has('arrowright')) camYawDeg = (camYawDeg + 1.8) % 360;
-
-      if (pulseAnimAlpha > 0.01) {
-        pulseAnimRadius += 0.28;
-        pulseAnimAlpha *= 0.88;
-        pulseWaveGroup.scale.set(pulseAnimRadius, pulseAnimRadius, 1);
-        pulseOuterRing.material.opacity = pulseAnimAlpha;
-        pulseInnerRing.material.opacity = pulseAnimAlpha * 0.85;
-      } else {
-        pulseOuterRing.material.opacity = 0.0;
-        pulseInnerRing.material.opacity = 0.0;
+    async function loop() {
+      if (mode === 'playing') {
+        if (keys.has('q') || keys.has('arrowleft')) camYawDeg = (camYawDeg - 1.8) % 360;
+        if (keys.has('arrowright')) camYawDeg = (camYawDeg + 1.8) % 360;
       }
 
-      if (!stepping) {
+      if (pulseAlpha > 0.01) {
+        pulseScale += 0.25; pulseAlpha *= 0.88;
+        pulseRing.scale.set(pulseScale, pulseScale, 1);
+        pulseRing.material.opacity = pulseAlpha;
+      } else {
+        pulseRing.material.opacity = 0;
+      }
+
+      if ((mode === 'playing' || (mode === 'paused' && latchPause)) && !stepping) {
         stepping = true;
         try {
-          let moveX = 0;
-          let moveZ = 0;
-          if (keys.has('w') || keys.has('arrowup')) moveZ += 1;
-          if (keys.has('s') || keys.has('arrowdown')) moveZ -= 1;
-          if (keys.has('a')) moveX += 1;
-          if (keys.has('d')) moveX -= 1;
-
-          const sendJump = latchedJump || keys.has(' ');
-          const sendInteract = latchedInteract || keys.has('e') || keys.has('f');
-          const sendPulse = latchedPulse || keys.has('shift') || keys.has('j');
-          latchedJump = false;
-          latchedInteract = false;
-          latchedPulse = false;
-
+          let mx = 0, mz = 0;
+          if (mode === 'playing') {
+            if (keys.has('w') || keys.has('arrowup')) mz += 1;
+            if (keys.has('s') || keys.has('arrowdown')) mz -= 1;
+            if (keys.has('a')) mx += 1;
+            if (keys.has('d')) mx -= 1;
+          }
+          if (latchJump) SFX.jump();
+          const body = {
+            move_x: mx, move_z: mz, cam_yaw_deg: camYawDeg,
+            jump: latchJump, interact: latchInteract, pulse: latchPulse,
+            dash: latchDash, pause: latchPause, ticks: latchPause ? 1 : 2,
+          };
+          latchJump = latchInteract = latchPulse = latchDash = latchPause = false;
           const res = await fetch('/api/step', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              move_x: moveX,
-              move_z: moveZ,
-              cam_yaw_deg: camYawDeg,
-              jump: sendJump,
-              interact: sendInteract,
-              pulse: sendPulse,
-              ticks: 2,
-            }),
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
           });
           applySnapshot(await res.json());
-        } catch (_err) {
-          // Server unreachable
-        } finally {
-          stepping = false;
-        }
+        } catch (_e) {} finally { stepping = false; }
       }
 
       renderer.render(scene, camera);
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(loop);
     }
 
-    fetch('/api/state').then((r) => r.json()).then(applySnapshot);
-    requestAnimationFrame(gameLoop);
+    fetch('/api/state').then((r) => r.json()).then((s) => { buildNightEnvironment(s.night); applySnapshot(s); });
+    requestAnimationFrame(loop);
   </script>
 </body>
 </html>

@@ -169,3 +169,37 @@ All 3D procedural geometry and 2D/UI decorative elements translate the reference
 ## Design Principle
 
 **Create a quiet, magical night world; let the deep blue environment and layered silhouettes establish the mood, let warm lantern light and one focal element tell the story, and use glow and decoration sparingly.**
+
+---
+
+<!-- [Phase 2] Ticket-02 ("Ba hòn đảo") standardized palette, 3-night maps, new entities, HUD, menus, and audio -->
+
+## 8. Phase 2: Standardized Palette, 3 Nights & New Visuals
+
+### 8.1 Standardized Color Palette (Max 10% RGB channel deviation)
+| Role | Hex |
+|---|---|
+| Night sky / Fog | `#0E1430` / `#1B2350` |
+| Grass / Sand / Wood / Sea of Clouds | `#2F5D50` / `#C9B48A` / `#6B4A2F` / `#12384A` |
+| Lit Lantern / Core / Unlit Lantern | `#FFB347` / `#FFE9B0` / `#5B5F6E` |
+| Firefly Core / Halo | `#FFF6C2` / `#FFE58A` |
+| Shadow Ink Body / Rim / Stunned | `#120A1A` / `#7A3CFF` / `#3A3450` |
+| Mây Cloak / Mây Scarf & Wind Charm | `#E8E2D0` / `#C8102E` |
+| Gold Border & Score / Gió Lạc (Drifter) | `#F2C14E` / `#8FA3B8` |
+| Danger UI / UI Text | `#FF5A5F` / `#F5F1E6` |
+
+- **Ambient Light Formula:** `intensity = 0.15 + 0.55 * (lit_lanterns / total_lanterns)`
+
+### 8.2 Three-Night Map Visuals
+- **Night 1 — Đảo Bến:** Circular island (`R=40m`) over `#12384A` sea of clouds, 5 lanterns (`L1..L5`).
+- **Night 2 — Đảo Cau:** Twin `R=28m` circular islands at `(0,0,0)` & `(70,0,0)` joined by a wooden bamboo bridge (`#6B4A2F`, `x∈[26,44]`, `z∈[-2,2]`, no railings), 2 glowing jump pads at `(20,0,18)` & `(50,0,-18)`, 6 lanterns (`L1..L6`), Wind Charm `C1` at `(35,0,0)`.
+- **Night 3 — Đảo Chuông:** `R=45m` 3-tier island (Tier 0 `Y=0`; Tier 1 `Y=3` ring `12..24m` for `z>0`; Tier 2 `Y=6` disk `R=8m` with `8m`-tall `R=2m` central Bell Tower), 2 radial ramps (`width=3m` at `30°` & `150°` from `r=30m` to `24m`), jump pad at `(0,3,13)`, 7 lanterns (`L1..L7`), Wind Charms `C1, C2`, plus swirling leaf particles + audio cue 2s before wind gusts.
+
+### 8.3 New Entities, Menus, HUD & Audio
+- **Mây:** Cream-ivory cloak (`#E8E2D0`) + crimson scarf (`#C8102E`) + *nón lá* + hanging lantern.
+- **Gió Lạc (Drifter):** Flowing grey-blue silk ribbon (`#8FA3B8`) that glides, chases, and flees.
+- **Bùa Gió (Wind Charm):** Red talisman with gold border (`#C8102E` / `#F2C14E`).
+- **3-Night Flow & Menus:** Main Menu → Night Intro (island title + Ông Đăng's words) → Play → Result → Next Night / Dawn Victory screen (with total score) or Retry Night.
+- **Pause (`Esc`/`P`) & Settings:** Resume / Restart Night / Settings (Volume & Mouse Sensitivity saved in `localStorage`) / Main Menu.
+- **Full HUD:** Flames (top-left), `mm:ss` timer (top-center; turns `#FF5A5F` & blinks at `<=30s`), `k/n` lanterns & score (top-right), 10-slot firefly bar (bottom-center), Dash & Pulse cooldown icons (bottom-right), `"E — Nạp ánh sáng (x/10)"` prompt near unlit lantern, off-screen directional arrow to nearest unlit lantern.
+- **Procedural Audio (Web Audio API):** Ambient night sound + SFX for pickup, light lantern, pulse, hit, jump, dash, win, lose, shade spawn, and final 10s countdown.

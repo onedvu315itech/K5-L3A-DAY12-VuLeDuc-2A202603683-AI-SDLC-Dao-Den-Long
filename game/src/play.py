@@ -1,4 +1,4 @@
-"""Local HTTP server bridging Three.js 3D viewport with Python simulation core."""
+"""Local HTTP server bridging Three.js 3D viewport with Python simulation core (Nights 1-3)."""
 
 from __future__ import annotations
 
@@ -22,9 +22,9 @@ WEB_DIR = GAME_DIR / "web"
 
 
 class GameServerState:
-    def __init__(self, seed: int = 42) -> None:
+    def __init__(self, seed: int = 42, night: int = 1) -> None:
         self.lock = threading.Lock()
-        self.engine = GameEngine(seed=seed)
+        self.engine = GameEngine(seed=seed, night=night)
         self.recent_events: list[dict] = []
 
     def payload(self, step_events: list[dict] | None = None) -> dict:
@@ -72,7 +72,11 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
         with self.state.lock:
             if self.path == "/api/reset":
                 seed = payload.get("seed")
-                self.state.engine.reset(seed=seed)
+                night = payload.get("night")
+                self.state.engine.reset(
+                    seed=seed,
+                    night=int(night) if night is not None else self.state.engine.night,
+                )
                 self.state.recent_events.clear()
                 self._send_json(self.state.payload())
                 return
@@ -84,9 +88,10 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
                 jump = bool(payload.get("jump", False))
                 interact = bool(payload.get("interact", False))
                 pulse = bool(payload.get("pulse", False))
+                dash = bool(payload.get("dash", False))
+                pause = bool(payload.get("pause", False))
                 all_events: list[dict] = []
                 for idx in range(ticks):
-                    # First sub-tick carries latched edge triggers; subsequent sub-ticks reset to False
                     ev = self.state.engine.step(
                         StepInput(
                             move_x=move_x,
@@ -95,6 +100,8 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
                             jump=jump if idx == 0 else False,
                             interact=interact if idx == 0 else False,
                             pulse=pulse if idx == 0 else False,
+                            dash=dash if idx == 0 else False,
+                            pause=pause if idx == 0 else False,
                         )
                     )
                     if ev:
@@ -107,13 +114,14 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Play Đảo Đèn Lồng 3D (Night 1 – Đảo Bến)")
+    parser = argparse.ArgumentParser(description="Play Đảo Đèn Lồng 3D (Nights 1-3)")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--night", type=int, default=1)
     args = parser.parse_args()
 
-    state = GameServerState(seed=args.seed)
+    state = GameServerState(seed=args.seed, night=args.night)
     handler = partial(GameRequestHandler, state=state)
     server = ThreadingHTTPServer((args.host, args.port), handler)
     print(f"Đảo Đèn Lồng 3D running at http://{args.host}:{args.port}")

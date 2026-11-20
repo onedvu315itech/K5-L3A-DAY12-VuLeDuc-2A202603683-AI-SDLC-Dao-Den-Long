@@ -103,3 +103,33 @@
 ### D. Live 3D Web Bridge (`game/src/play.py`)
 - **Owner:** `game/src/play.py` ← `game/src/core/engine.py`
 - Exposes `GET /health`, `GET /api/state` (full snapshot + HUD metadata like `carry_capacity`, `lantern_cost`, `pulse_cooldown_left_s`, `last_pulse_tick`), `POST /api/step` (`move_x`, `move_z`, `cam_yaw_deg`, `jump`, `interact`, `pulse`, `ticks`), and `POST /api/reset`.
+
+---
+
+<!-- [Phase 2] Upgraded to Test Contract v1.1 (Ticket-02) -->
+
+## Phase 2: Test Contract v1.1 Deltas & Owners
+
+### A. `game.contract.json` (Repository Root, `contract_version: "1.1"`)
+- Standardized tuning values from Ticket-02 Part 1, plus new keys:
+  - `dash_speed: 14.0`, `dash_duration_s: 0.2`, `dash_cooldown_s: 1.5`
+  - `night1_duration_s: 300.0`, `night2_duration_s: 330.0`, `night3_duration_s: 360.0`
+  - `fall_enabled: true`
+  - Standardized: `player_speed: 6.0`, `carry_capacity: 10`, `lantern_cost: 10`, `pickup_radius: 1.0`, `interact_radius: 2.0`, `pulse_cost: 3`, `pulse_radius: 5.0`, `pulse_stun_s: 2.0`, `pulse_push_m: 4.0`, `pulse_cooldown_s: 3.0`, `safe_radius: 6.0`, `shade_speed: 4.0`, `shade_hit_radius: 1.0`, `invuln_s: 1.5`, `hit_drop_ratio: 0.5`, `score: {per_mote: 0, per_lantern: 100, per_stun: 5, per_second_left: 2, per_flame_left: 50}` (`+10` per mote deposited in engine).
+
+### B. Headless CLI (`game/src/headless.py`)
+- `--night` accepts `1`, `2`, or `3`. Full night (`21,600` ticks) completes in `<= 30s`.
+
+### C. JSONL Output v1.1 (`--out <file.jsonl>`)
+1. **Snapshot additions:**
+   - Top-level: `night` (`1|2|3`), `wind`: `{"active": bool, "dir_deg": float}`
+   - `player`: adds `vel` (`[vx, vy, vz]`), `grounded` (`bool`), `invuln` (`bool`), `dash_cd_s` (`float`), `pulse_cd_s` (`float`), `charm_s` (`float`)
+   - `motes`: `[{"id": str, "pos": [x,y,z], "kind": "random"|"dropped", "ttl_s": float|null}]`
+   - `shades`: `state` MUST be `"spawning" | "wander" | "chase" | "recoil" | "stunned"`
+   - `drifters`: `[{"id": str, "pos": [x,y,z], "state": "idle"|"chase"|"flee"|"removed", "stolen": int}]`
+   - `charms`: `[{"id": str, "available": bool, "respawn_s": float}]`
+2. **Scenario & Input v1.1 additions:**
+   - Scenario: `player.{invuln_ticks, dash_cd_ticks, pulse_cd_ticks, charm_ticks}`, `shades[].{state, state_ticks_left}`, `drifters`, `charms`, `random_drifters`, `wind_enabled`.
+   - Input: `dash` (`bool`, edge `false->true`), `pause` (`bool`, edge `false->true`).
+3. **New Event types:**
+   - `dash {}`, `charm_picked {"charm_id": str, "charm_ticks": int}`, `drifter_steal {"drifter_id": str, "amount": int, "carried": int}`, `drifter_drop {"drifter_id": str, "amount": int}`, `night_start {"night": int}`, `paused {}`, `resumed {}`, `player_hit` with `lost` on fall.
