@@ -8,7 +8,8 @@
 - **Three.js r170** (`MIT License`, https://threejs.org/) — 3D WebGL scene rendering (`game/web/index.html`).
 
 ## Audio & 3D Visuals
-- **3D Models & Textures:** 100% procedural Three.js geometry and materials (`game/web/index.html`), styled after the Whimsical Nightscape & Ticket-02 standardized palette (`game/DESIGNS.md`). No external copyrighted 3D models or textures were used.
+- **3D Prefabs & Procedural Canvas Textures:** Procedural Three.js geometry, lathe silhouettes, and Canvas 2D textures (`game/web/art.js`, `game/web/index.html`), styled after the Whimsical Nightscape design system (`game/DESIGNS.md`).
+- **2D Reference & UI Backdrop Illustrations (`game/web/assets/`):** `lake.jpg`, `bush.jpg`, `stone.jpg`, `tree.jpg`, `lamp_post.jpg`, `blinking_light.jpg`, `noel_moon.jpg`, `ghost.jpg`, `double_character.jpg`, and `conical_hat.jpg` — user-provided Whimsical Nightscape reference illustrations used for menu/intro backdrops and 3D prefab modeling blueprints.
 - **Music & Sound Effects:** 100% procedural real-time Web Audio API synthesis (`game/web/index.html` — dual-oscillator ambient night drone and synthesized SFX for pickup, lantern ignition, pulse, hit, jump, dash, shade spawn, 10s countdown, win, and loss).
 
 ## AI Tools Used

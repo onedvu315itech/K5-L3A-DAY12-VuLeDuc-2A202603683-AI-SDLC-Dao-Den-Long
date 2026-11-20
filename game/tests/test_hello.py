@@ -405,6 +405,17 @@ class TestPhase4ContractAndRelease(unittest.TestCase):
             snap0 = json.loads(r1.read().decode("utf-8"))
             self.assertEqual(snap0["night"], 2)
             self.assertEqual(len(snap0["lanterns"]), 6)
+
+            conn.request("GET", "/art.js")
+            r_art = conn.getresponse()
+            self.assertEqual(r_art.status, 200)
+            art_js = r_art.read().decode("utf-8")
+            self.assertIn("createMayPrefab", art_js)
+
+            conn.request("GET", "/assets/lake.jpg")
+            r_img = conn.getresponse()
+            self.assertEqual(r_img.status, 200)
+            self.assertGreater(len(r_img.read()), 1000)
         finally:
             server.shutdown()
             server.server_close()

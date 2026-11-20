@@ -6,27 +6,51 @@
   <title>Đảo Đèn Lồng — Ba Hòn Đảo (Phase 2)</title>
   <style>
     :root {
-      --sky: #0E1430;
-      --fog: #1B2350;
-      --grass: #2F5D50;
-      --sand: #C9B48A;
-      --wood: #6B4A2F;
-      --clouds: #12384A;
+      /* Whimsical Nightscape Design Tokens (DESIGNS.md) */
+      --color-night-950: #071326;
+      --color-night-900: #0B1D35;
+      --color-night-800: #102B49;
+      --color-blue-700: #16466A;
+      --color-blue-500: #267FA0;
+      --color-teal-300: #63C6C8;
+      --color-moon-100: #FFF0B7;
+      --color-star-100: #F7F7FF;
+      --color-lavender-200: #C6B9E8;
+      --color-violet-900: #29233F;
+      --color-ink-950: #171923;
+      --color-mist-100: #E9EDF2;
+
+      --surface-page: var(--color-night-950);
+      --surface-raised: rgba(16, 43, 73, 0.84);
+      --text-primary: var(--color-star-100);
+      --text-muted: #B8C7D8;
+      --accent-primary: var(--color-moon-100);
+      --accent-secondary: var(--color-teal-300);
+      --radius-card: 12px;
+      --radius-control: 8px;
+
+      /* Gameplay & HUD Semantic Mapping */
+      --sky: var(--color-night-950);
+      --fog: var(--color-night-800);
+      --grass: var(--color-blue-700);
+      --sand: var(--color-blue-500);
+      --wood: #5A4436;
+      --clouds: var(--color-night-900);
       --lantern-lit: #FFB347;
-      --lantern-core: #FFE9B0;
-      --lantern-off: #5B5F6E;
-      --mote-core: #FFF6C2;
+      --lantern-core: var(--color-moon-100);
+      --lantern-off: #4B6584;
+      --mote-core: var(--color-moon-100);
       --mote-halo: #FFE58A;
-      --shade-body: #120A1A;
-      --shade-rim: #7A3CFF;
-      --shade-stun: #3A3450;
-      --may-cloak: #E8E2D0;
+      --shade-body: var(--color-ink-950);
+      --shade-rim: var(--color-lavender-200);
+      --shade-stun: var(--color-teal-300);
+      --may-cloak: #E5C646;
       --crimson: #C8102E;
-      --gold: #F2C14E;
-      --drifter: #8FA3B8;
+      --gold: var(--color-moon-100);
+      --drifter: var(--color-teal-300);
       --danger: #FF5A5F;
-      --ui-text: #F5F1E6;
-      --panel-bg: rgba(14, 20, 48, 0.84);
+      --ui-text: var(--color-star-100);
+      --panel-bg: rgba(11, 29, 53, 0.84);
     }
     body.colorblind {
       --danger: #FFFFFF;
@@ -143,31 +167,49 @@
       box-shadow: 0 0 12px rgba(255, 179, 71, 0.6);
     }
 
-    /* Overlays & Menus */
+    /* Overlays & Menus (Whimsical Nightscape Styling) */
     .overlay {
       position: fixed; inset: 0; z-index: 30;
-      background: rgba(14, 20, 48, 0.88);
+      background: rgba(7, 19, 38, 0.88);
       backdrop-filter: blur(5px);
       display: none; align-items: center; justify-content: center;
     }
+    #mainMenuOverlay {
+      background:
+        radial-gradient(circle at 50% 42%, rgba(7, 19, 38, 0.45), rgba(7, 19, 38, 0.92)),
+        url('/assets/lake.jpg') center / cover no-repeat;
+    }
     .card {
-      background: #131b3d;
-      border: 2px solid var(--gold);
-      border-radius: 14px;
-      padding: 26px 32px;
-      width: min(440px, 92vw);
+      background: rgba(11, 29, 53, 0.94);
+      border: 1.5px solid rgba(255, 240, 183, 0.48);
+      border-radius: var(--radius-card);
+      padding: 24px 30px;
+      width: min(460px, 92vw);
       text-align: center;
-      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7);
+      box-shadow: 0 18px 46px rgba(0, 0, 0, 0.72);
+    }
+    .art-banner {
+      width: 100%; height: 140px; object-fit: cover;
+      border-radius: 8px; border: 1px solid rgba(255, 240, 183, 0.35);
+      margin-bottom: 12px; display: block;
+    }
+    .art-strip {
+      display: flex; justify-content: center; gap: 10px; margin: 10px 0 6px;
+    }
+    .art-badge {
+      width: 52px; height: 52px; border-radius: 50%;
+      object-fit: cover; border: 1.5px solid var(--color-moon-100);
+      background: var(--color-night-950);
     }
     .card h1, .card h2 { margin: 0 0 10px; color: var(--gold); }
     .card p { margin: 8px 0; color: var(--ui-text); line-height: 1.5; font-size: 18px; }
     .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
     .btn {
-      padding: 10px 18px; border-radius: 8px; border: 1.5px solid var(--gold);
-      background: var(--gold); color: #120A1A; font-weight: 700; font-size: 18px;
+      padding: 10px 18px; border-radius: var(--radius-control); border: 1.5px solid var(--gold);
+      background: var(--gold); color: var(--color-ink-950); font-weight: 700; font-size: 18px;
       cursor: pointer;
     }
-    .btn.secondary { background: transparent; color: var(--ui-text); }
+    .btn.secondary { background: rgba(16, 43, 73, 0.65); color: var(--ui-text); border-color: rgba(99, 198, 200, 0.45); }
     .btn:hover { filter: brightness(1.08); }
     .setting-row {
       display: flex; justify-content: space-between; align-items: center;
@@ -233,6 +275,12 @@
   <!-- Main Menu -->
   <div id="mainMenuOverlay" class="overlay" style="display:flex;">
     <div class="card">
+      <div class="art-strip" aria-hidden="true">
+        <img class="art-badge" src="/assets/double_character.jpg" alt="" />
+        <img class="art-badge" src="/assets/conical_hat.jpg" alt="" />
+        <img class="art-badge" src="/assets/lamp_post.jpg" alt="" />
+        <img class="art-badge" src="/assets/ghost.jpg" alt="" />
+      </div>
       <h1>Đảo Đèn Lồng</h1>
       <p style="color:var(--lantern-core);">Ba Hòn Đảo · Hành trình thắp sáng đêm sương</p>
       <div class="btn-row">
@@ -259,6 +307,7 @@
   <!-- Night Intro (Ông Đăng) -->
   <div id="introOverlay" class="overlay">
     <div class="card">
+      <img id="introBannerImg" class="art-banner" src="/assets/bush.jpg" alt="Khung cảnh đêm trên Đảo Đèn Lồng" />
       <h2 id="introTitle">Đêm 1 — Đảo Bến</h2>
       <p id="introSpeech" style="font-style:italic;color:var(--lantern-core);"></p>
       <div class="btn-row">
@@ -316,11 +365,12 @@
   <!-- Night Result / Dawn Victory -->
   <div id="resultOverlay" class="overlay">
     <div class="card">
+      <img id="resultBannerImg" class="art-banner" src="/assets/noel_moon.jpg" alt="Kết quả đêm" />
       <h2 id="resultTitle">Hoàn Thành Đêm!</h2>
       <p id="resultReason"></p>
       <p id="resultScore" style="font-size:19px;font-weight:700;color:var(--gold);"></p>
       <div id="saveScoreBox" style="margin:10px 0;display:none;">
-        <input id="playerNameInput" type="text" maxlength="12" placeholder="Tên (3-12 ký tự)" style="padding:6px 10px;font-size:18px;border-radius:6px;border:1px solid var(--gold);background:#0E1430;color:var(--ui-text);width:190px;" />
+        <input id="playerNameInput" type="text" maxlength="12" placeholder="Tên (3-12 ký tự)" style="padding:6px 10px;font-size:18px;border-radius:6px;border:1px solid var(--gold);background:#071326;color:var(--ui-text);width:190px;" />
         <button class="btn" id="saveScoreBtn" style="padding:6px 12px;margin-left:6px;">Lưu điểm</button>
         <div id="saveScoreMsg" style="font-size:18px;color:var(--lantern-core);margin-top:4px;"></div>
       </div>
@@ -333,11 +383,33 @@
 
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
+    import {
+      PALETTE,
+      createMayPrefab,
+      updateMayAnimation,
+      createGreatLanternPrefab,
+      createMotePrefab,
+      createGhostShadePrefab,
+      createNightSkyDecor,
+      populateIslandScenery,
+    } from './art.js';
 
     const NIGHT_INFO = {
-      1: { name: 'Đêm 1 · Đảo Bến', speech: 'Ông Đăng: "Mây ơi, sương đen đã phủ kín Đảo Bến. Hãy gom 10 đom đóm để thắp lại 5 ngọn Đèn Lồng Lớn trước bình minh!"' },
-      2: { name: 'Đêm 2 · Đảo Cau', speech: 'Ông Đăng: "Hai hòn đảo nối bằng cầu tre mỏng manh. Cẩn thận Gió Lạc rình rập cướp ánh sáng và tận dụng Bùa Gió nhé!"' },
-      3: { name: 'Đêm 3 · Đảo Chuông', speech: 'Ông Đăng: "Đảo Chuông ba tầng cao gió lộng. Hãy leo dốc, phóng bục nhảy lên Tháp Chuông và thắp sáng cả 7 ngọn đèn để đón Bình Minh!"' },
+      1: {
+        name: 'Đêm 1 · Đảo Bến',
+        banner: '/assets/bush.jpg',
+        speech: 'Ông Đăng: "Mây ơi, sương đêm đã phủ kín Đảo Bến. Hãy gom 10 đom đóm để thắp lại 5 ngọn Đèn Lồng Lớn trước bình minh!"',
+      },
+      2: {
+        name: 'Đêm 2 · Đảo Cau',
+        banner: '/assets/tree.jpg',
+        speech: 'Ông Đăng: "Hai hòn đảo nối bằng cầu tre mỏng manh. Cẩn thận Gió Lạc rình rập cướp ánh sáng và tận dụng Bùa Gió nhé!"',
+      },
+      3: {
+        name: 'Đêm 3 · Đảo Chuông',
+        banner: '/assets/stone.jpg',
+        speech: 'Ông Đăng: "Đảo Chuông ba tầng cao gió lộng. Hãy leo dốc, phóng bục nhảy lên Tháp Chuông và thắp sáng cả 7 ngọn đèn để đón Bình Minh!"',
+      },
     };
 
     // Persisted Settings & Keybinds
@@ -515,45 +587,49 @@
     let lastCountdownSec = -1;
     let lastSeenTick = -1;
 
-    // Three.js Setup using Ticket-02 Standardized Palette
+    // Three.js Setup using Whimsical Nightscape Palette (DESIGNS.md)
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0E1430);
-    scene.fog = new THREE.FogExp2(0x1B2350, 0.014);
+    scene.background = new THREE.Color(PALETTE.night950);
+    scene.fog = new THREE.FogExp2(PALETTE.night800, 0.013);
 
-    const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 300);
+    const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 320);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xFFF6C2, 0.15);
+    const ambientLight = new THREE.AmbientLight(PALETTE.moon100, 0.18);
     scene.add(ambientLight);
-    const moonLight = new THREE.DirectionalLight(0xFFE9B0, 0.85);
-    moonLight.position.set(40, 60, -70);
+    const moonLight = new THREE.DirectionalLight(PALETTE.moon100, 0.9);
+    moonLight.position.set(48, 66, -95);
     scene.add(moonLight);
+    const coolRimLight = new THREE.DirectionalLight(PALETTE.teal300, 0.35);
+    coolRimLight.position.set(-50, 35, 65);
+    scene.add(coolRimLight);
 
-    // Sea of Clouds (#12384A) + Starry Sky
+    // Reflective Moonlit Lake (#0B1D35) + Starry Sky + Concentric Halo Moon + Mountain Horizon
     const cloudSea = new THREE.Mesh(
-      new THREE.CircleGeometry(220, 64),
-      new THREE.MeshStandardMaterial({ color: 0x12384A, roughness: 0.95 })
+      new THREE.CircleGeometry(240, 64),
+      new THREE.MeshStandardMaterial({ color: PALETTE.night900, roughness: 0.32, metalness: 0.55 })
     );
     cloudSea.rotation.x = -Math.PI / 2;
     cloudSea.position.y = -10.5;
     scene.add(cloudSea);
 
-    const starPos = new Float32Array(500 * 3);
-    for (let i = 0; i < 500; i++) {
+    const starPos = new Float32Array(520 * 3);
+    for (let i = 0; i < 520; i++) {
       const a = ((i * 73) % 997) / 997 * Math.PI * 2;
       const p = 0.08 + (((i * 151) % 991) / 991) * 1.2;
-      starPos[i * 3] = 150 * Math.sin(p) * Math.cos(a);
-      starPos[i * 3 + 1] = 150 * Math.cos(p) + 12;
-      starPos[i * 3 + 2] = 150 * Math.sin(p) * Math.sin(a);
+      starPos[i * 3] = 155 * Math.sin(p) * Math.cos(a);
+      starPos[i * 3 + 1] = 155 * Math.cos(p) + 12;
+      starPos[i * 3 + 2] = 155 * Math.sin(p) * Math.sin(a);
     }
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
-    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xF5F1E6, size: 0.9, fog: false })));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: PALETTE.star100, size: 0.85, fog: false })));
+    scene.add(createNightSkyDecor());
 
-    // Map Environment Group (rebuilt per Night 1/2/3)
+    // Map Environment Group (rebuilt per Night 1/2/3 with Storybook Landmarks)
     const mapGroup = new THREE.Group();
     scene.add(mapGroup);
     let builtMapNight = 0;
@@ -563,21 +639,21 @@
       builtMapNight = night;
       while (mapGroup.children.length > 0) mapGroup.remove(mapGroup.children[0]);
 
-      const grassMat = new THREE.MeshStandardMaterial({ color: 0x2F5D50, roughness: 0.9 });
-      const sandMat = new THREE.MeshStandardMaterial({ color: 0xC9B48A, roughness: 0.88 });
-      const woodMat = new THREE.MeshStandardMaterial({ color: 0x6B4A2F, roughness: 0.85 });
+      const grassMat = new THREE.MeshStandardMaterial({ color: PALETTE.night800, roughness: 0.88 });
+      const sandMat = new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.82 });
+      const woodMat = new THREE.MeshStandardMaterial({ color: 0x4A382B, roughness: 0.85 });
 
       if (night === 1) {
-        const g = new THREE.Mesh(new THREE.CylinderGeometry(40, 41, 1.5, 64), grassMat);
-        g.position.y = -0.75;
-        const rim = new THREE.Mesh(new THREE.RingGeometry(37, 40, 64), sandMat);
+        const g = new THREE.Mesh(new THREE.CylinderGeometry(40, 41.2, 1.6, 64), grassMat);
+        g.position.y = -0.8;
+        const rim = new THREE.Mesh(new THREE.RingGeometry(36.8, 40, 64), sandMat);
         rim.rotation.x = -Math.PI / 2; rim.position.y = 0.02;
         mapGroup.add(g, rim);
       } else if (night === 2) {
         for (const cx of [0, 70]) {
-          const isl = new THREE.Mesh(new THREE.CylinderGeometry(28, 29, 1.5, 48), grassMat);
-          isl.position.set(cx, -0.75, 0);
-          const rim = new THREE.Mesh(new THREE.RingGeometry(25.5, 28, 48), sandMat);
+          const isl = new THREE.Mesh(new THREE.CylinderGeometry(28, 29.2, 1.6, 48), grassMat);
+          isl.position.set(cx, -0.8, 0);
+          const rim = new THREE.Mesh(new THREE.RingGeometry(25.2, 28, 48), sandMat);
           rim.rotation.x = -Math.PI / 2; rim.position.set(cx, 0.02, 0);
           mapGroup.add(isl, rim);
         }
@@ -586,16 +662,16 @@
         mapGroup.add(bridge);
         for (const [jx, jz] of [[20, 18], [50, -18]]) {
           const pad = new THREE.Mesh(
-            new THREE.CylinderGeometry(1.0, 1.1, 0.2, 20),
-            new THREE.MeshBasicMaterial({ color: 0xF2C14E })
+            new THREE.CylinderGeometry(1.0, 1.15, 0.22, 24),
+            new THREE.MeshBasicMaterial({ color: PALETTE.teal300 })
           );
           pad.position.set(jx, 0.1, jz);
           mapGroup.add(pad);
         }
       } else {
         // Night 3: Đảo Chuông (3 Tiers, 2 Ramps, Jump Pad, Bell Tower)
-        const t0 = new THREE.Mesh(new THREE.CylinderGeometry(45, 46, 1.5, 64), grassMat);
-        t0.position.y = -0.75;
+        const t0 = new THREE.Mesh(new THREE.CylinderGeometry(45, 46.2, 1.6, 64), grassMat);
+        t0.position.y = -0.8;
         mapGroup.add(t0);
 
         const shape = new THREE.Shape();
@@ -612,13 +688,13 @@
         mapGroup.add(t2);
 
         // Bell Tower (R=2m, H=8m at (0,6,0))
-        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.0, 8.0, 20), woodMat);
+        const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.1, 8.0, 20), woodMat);
         tower.position.set(0, 10.0, 0);
         const roof = new THREE.Mesh(
-          new THREE.ConeGeometry(2.8, 2.0, 8),
-          new THREE.MeshStandardMaterial({ color: 0xC8102E })
+          new THREE.ConeGeometry(2.9, 2.2, 8),
+          new THREE.MeshStandardMaterial({ color: PALETTE.violet900, emissive: PALETTE.night900 })
         );
-        roof.position.set(0, 15.0, 0);
+        roof.position.set(0, 15.1, 0);
         mapGroup.add(tower, roof);
 
         // 2 Ramps at 30 deg & 150 deg (r=30 Y=0 -> r=24 Y=3)
@@ -633,50 +709,26 @@
         }
 
         const pad3 = new THREE.Mesh(
-          new THREE.CylinderGeometry(1.0, 1.1, 0.2, 20),
-          new THREE.MeshBasicMaterial({ color: 0xF2C14E })
+          new THREE.CylinderGeometry(1.0, 1.15, 0.22, 24),
+          new THREE.MeshBasicMaterial({ color: PALETTE.teal300 })
         );
         pad3.position.set(0, 3.1, 13);
         mapGroup.add(pad3);
       }
+
+      // Add Storybook Silhouettes (Stonehenge trilithons, lone tree, pine trees, teal bushes)
+      populateIslandScenery(mapGroup, night);
     }
 
-    // Mây Character (#E8E2D0 cloak, #C8102E scarf, nón lá, hanging lantern)
-    const playerGroup = new THREE.Group();
-    const cloak = new THREE.Mesh(
-      new THREE.ConeGeometry(0.5, 1.2, 16),
-      new THREE.MeshStandardMaterial({ color: 0xE8E2D0, roughness: 0.65 })
-    );
-    cloak.position.y = 0.6;
-    const scarf = new THREE.Mesh(
-      new THREE.TorusGeometry(0.25, 0.07, 8, 20),
-      new THREE.MeshStandardMaterial({ color: 0xC8102E })
-    );
-    scarf.rotation.x = Math.PI / 2; scarf.position.y = 1.1;
-    const head = new THREE.Mesh(
-      new THREE.SphereGeometry(0.24, 16, 16),
-      new THREE.MeshStandardMaterial({ color: 0xFFE9B0 })
-    );
-    head.position.y = 1.28;
-    const hat = new THREE.Mesh(
-      new THREE.ConeGeometry(0.66, 0.36, 20),
-      new THREE.MeshStandardMaterial({ color: 0xC9B48A })
-    );
-    hat.position.y = 1.52;
-    const handOrb = new THREE.Mesh(
-      new THREE.SphereGeometry(0.11, 10, 10),
-      new THREE.MeshBasicMaterial({ color: 0xFFF6C2 })
-    );
-    handOrb.position.set(0, 1.05, 0.6);
-    const handLight = new THREE.PointLight(0xFFB347, 2.5, 12);
-    handLight.position.set(0, 1.1, 0.65);
-    playerGroup.add(cloak, scarf, head, hat, handOrb, handLight);
+    // Mây Character Prefab (double_character.jpg yellow raincoat + conical_hat.jpg floral Nón Lá)
+    const playerGroup = createMayPrefab();
     scene.add(playerGroup);
+    let prevPlayerPos = [0, 0, 0];
 
-    // Pulse Ring Visual
+    // Pulse Ring Visual (Teal + Moon Gold burst)
     const pulseRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.5, 0.9, 48),
-      new THREE.MeshBasicMaterial({ color: 0xFFE58A, side: THREE.DoubleSide, transparent: true, opacity: 0 })
+      new THREE.RingGeometry(0.5, 0.92, 48),
+      new THREE.MeshBasicMaterial({ color: PALETTE.teal300, side: THREE.DoubleSide, transparent: true, opacity: 0 })
     );
     pulseRing.rotation.x = -Math.PI / 2;
     scene.add(pulseRing);
@@ -697,42 +749,12 @@
     }
 
     function syncAllEntities(snap) {
-      // Lanterns
+      // Lanterns (Ornate Vintage Wrought-Iron Street Lamp from lamp_post.jpg)
       for (const l of snap.lanterns) {
         let e = lanternMap.get(l.id);
         if (!e) {
-          const g = new THREE.Group();
-          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.35, 3.0, 10), new THREE.MeshStandardMaterial({ color: 0x6B4A2F }));
-          post.position.y = 1.5;
-          const orb = new THREE.Mesh(new THREE.SphereGeometry(0.45, 16, 16), new THREE.MeshStandardMaterial({ color: 0x5B5F6E }));
-          orb.position.y = 3.2;
-
-          // Non-color unlit tear/crack strips
-          const tearGroup = new THREE.Group();
-          for (let t = 0; t < 2; t++) {
-            const tear = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.08, 0.14), new THREE.MeshBasicMaterial({ color: 0x120A1A }));
-            tear.rotation.z = t === 0 ? 0.45 : -0.45;
-            tear.rotation.y = t * 1.1;
-            tearGroup.add(tear);
-          }
-          tearGroup.position.y = 3.2;
-
-          // Fuel bar above lantern
-          const fuelBg = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.14, 0.06), new THREE.MeshBasicMaterial({ color: 0x120A1A }));
-          fuelBg.position.y = 4.15;
-          const fuelFill = new THREE.Mesh(new THREE.BoxGeometry(1.32, 0.1, 0.08), new THREE.MeshBasicMaterial({ color: 0xFFB347 }));
-          fuelFill.position.y = 4.15;
-
-          const ring = new THREE.Mesh(
-            new THREE.RingGeometry(5.88, 6.0, 48),
-            new THREE.MeshBasicMaterial({ color: 0xFFB347, side: THREE.DoubleSide, transparent: true, opacity: 0.1 })
-          );
-          ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05;
-          const light = new THREE.PointLight(0xFFB347, 0, 22);
-          light.position.y = 3.3;
-          g.add(post, orb, tearGroup, fuelBg, fuelFill, ring, light);
-          scene.add(g);
-          e = { group: g, orb, tearGroup, fuelBg, fuelFill, ring, light };
+          e = createGreatLanternPrefab();
+          scene.add(e.group);
           lanternMap.set(l.id, e);
         }
         e.group.position.set(l.pos[0], l.pos[1], l.pos[2]);
@@ -746,72 +768,84 @@
           e.fuelFill.visible = !lowFuel || blinkOn;
           const frac = Math.max(0.02, Math.min(1.0, l.fuel / 100.0));
           e.fuelFill.scale.x = frac;
-          e.fuelFill.position.x = -0.66 * (1.0 - frac);
-          e.fuelFill.material.color.setHex(lowFuel ? (settings.colorblind ? 0xFFFFFF : 0xFF5A5F) : 0xFFB347);
+          e.fuelFill.position.x = 0.4 - 0.66 * (1.0 - frac);
+          e.fuelFill.material.color.setHex(lowFuel ? (settings.colorblind ? 0xFFFFFF : 0xFF5A5F) : PALETTE.amberGlow);
 
-          e.orb.material.color.setHex(0xFFE9B0);
-          e.orb.material.emissive.setHex(0xFFB347);
+          e.orb.material.color.setHex(PALETTE.moon100);
+          e.orb.material.emissive.setHex(PALETTE.amberGlow);
           e.orb.material.emissiveIntensity = lowFuel ? (blinkOn ? 1.0 : 0.25) : 1.0;
-          e.light.intensity = lowFuel ? (blinkOn ? 4.5 : 1.5) : 6.5;
-          e.ring.material.opacity = l.fuel >= 30.0 ? 0.45 : 0.08;
+          e.sparkle.material.opacity = lowFuel ? (blinkOn ? 0.95 : 0.2) : 0.92;
+          const spScale = 1.35 + 0.18 * Math.sin(snap.tick * 0.12);
+          e.sparkle.scale.set(spScale, spScale, 1);
+          e.light.intensity = lowFuel ? (blinkOn ? 4.8 : 1.5) : 7.0;
+          e.ring.material.opacity = l.fuel >= 30.0 ? 0.42 : 0.08;
         } else {
           const cost = l.ever_lit ? 5 : 10;
           e.orb.scale.set(1.0, 0.8, 1.0); // 20% squashed when unlit
           e.tearGroup.visible = true;
           e.fuelBg.visible = false;
           e.fuelFill.visible = false;
-          e.orb.material.color.setHex(0x5B5F6E);
-          e.orb.material.emissive.setHex(l.deposited > 0 ? 0xFFB347 : 0x000000);
+          e.orb.material.color.setHex(PALETTE.blue700);
+          e.orb.material.emissive.setHex(l.deposited > 0 ? PALETTE.amberGlow : 0x000000);
           e.orb.material.emissiveIntensity = (l.deposited / cost) * 0.6;
-          e.light.intensity = (l.deposited / cost) * 1.5;
+          e.sparkle.material.opacity = (l.deposited / cost) * 0.45;
+          e.light.intensity = (l.deposited / cost) * 1.6;
           e.ring.material.opacity = 0.08;
         }
       }
 
-      // Motes
+      // Motes (4/8-Point Starburst Sprites from blinking_light.jpg)
       const mIds = new Set();
       for (const m of snap.motes || []) {
         mIds.add(m.id);
         let g = moteMap.get(m.id);
         if (!g) {
-          g = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), new THREE.MeshBasicMaterial({ color: 0xFFF6C2 }));
+          g = createMotePrefab();
           scene.add(g);
           moteMap.set(m.id, g);
         }
-        g.position.set(m.pos[0], m.pos[1] + 0.55 + 0.15 * Math.sin(snap.tick * 0.08 + m.pos[0]), m.pos[2]);
+        const bob = settings.reduceMotion ? 0 : 0.16 * Math.sin(snap.tick * 0.09 + m.pos[0]);
+        g.position.set(m.pos[0], m.pos[1] + 0.58 + bob, m.pos[2]);
+        if (g.userData?.sprite) {
+          const twinkle = settings.reduceMotion ? 1.0 : 0.92 + 0.25 * Math.sin(snap.tick * 0.16 + m.pos[2]);
+          g.userData.sprite.scale.set(twinkle, twinkle, 1);
+        }
       }
       for (const [id, g] of moteMap.entries()) {
         if (!mIds.has(id)) { scene.remove(g); moteMap.delete(id); }
       }
 
-      // Shades (#120A1A body, #7A3CFF rim, #3A3450 stunned)
+      // Shades (Storybook Floating Ghost from ghost.jpg)
       const sIds = new Set();
       for (const s of snap.shades || []) {
         sIds.add(s.id);
         let e = shadeMap.get(s.id);
         if (!e) {
-          const g = new THREE.Group();
-          const body = new THREE.Mesh(
-            new THREE.ConeGeometry(0.65, 1.8, 12),
-            new THREE.MeshStandardMaterial({ color: 0x120A1A, emissive: 0x7A3CFF, emissiveIntensity: 0.7 })
-          );
-          body.position.y = 0.9;
-          g.add(body);
-          scene.add(g);
-          e = { group: g, body };
+          e = createGhostShadePrefab();
+          scene.add(e.group);
           shadeMap.set(s.id, e);
         }
-        e.group.position.set(s.pos[0], s.pos[1] - 1.0, s.pos[2]);
         const stunned = s.state === 'stunned';
-        const activeRim = settings.colorblind ? 0x00B3FF : 0x7A3CFF;
-        e.body.material.color.setHex(stunned ? 0x3A3450 : 0x120A1A);
-        e.body.material.emissive.setHex(stunned ? 0x8FA3B8 : activeRim);
+        const jitterX = (stunned && !settings.reduceMotion) ? Math.sin(snap.tick * 1.7) * 0.11 : 0;
+        const floatY = settings.reduceMotion ? 0 : Math.sin(snap.tick * 0.1 + s.pos[0]) * 0.12;
+        e.group.position.set(s.pos[0] + jitterX, s.pos[1] - 1.0 + floatY, s.pos[2]);
+
+        // Rotate ghost to face player or target lantern
+        const tx = snap.player.pos[0] - s.pos[0];
+        const tz = snap.player.pos[2] - s.pos[2];
+        if (tx * tx + tz * tz > 0.01) {
+          e.body.rotation.y = Math.atan2(tx, tz);
+        }
+
+        const activeRim = settings.colorblind ? 0x00B3FF : PALETTE.violet900;
+        e.body.material.color.setHex(stunned ? PALETTE.teal300 : PALETTE.lavender200);
+        e.body.material.emissive.setHex(stunned ? PALETTE.blue500 : activeRim);
       }
       for (const [id, e] of shadeMap.entries()) {
         if (!sIds.has(id)) { scene.remove(e.group); shadeMap.delete(id); }
       }
 
-      // Drifters (#8FA3B8 silk ribbon)
+      // Drifters (Teal-blue silk wind ribbon)
       const dIds = new Set();
       for (const d of snap.drifters || []) {
         if (d.state === 'removed') continue;
@@ -819,8 +853,8 @@
         let g = drifterMap.get(d.id);
         if (!g) {
           g = new THREE.Mesh(
-            new THREE.BoxGeometry(1.5, 0.18, 0.5),
-            new THREE.MeshStandardMaterial({ color: 0x8FA3B8, emissive: 0x8FA3B8, emissiveIntensity: 0.45 })
+            new THREE.BoxGeometry(1.55, 0.16, 0.45),
+            new THREE.MeshStandardMaterial({ color: PALETTE.teal300, emissive: PALETTE.blue500, emissiveIntensity: 0.55 })
           );
           scene.add(g);
           drifterMap.set(d.id, g);
@@ -832,7 +866,7 @@
         if (!dIds.has(id)) { scene.remove(g); drifterMap.delete(id); }
       }
 
-      // Wind Charms (#C8102E red + #F2C14E gold border)
+      // Wind Charms (#C8102E red + #FFF0B7 moon-gold border)
       const charmPositions = snap.night === 2
         ? { C1: [35, 0, 0] }
         : snap.night === 3 ? { C1: [30, 0, 25], C2: [-30, 0, 25] } : {};
@@ -844,7 +878,7 @@
         if (!g) {
           g = new THREE.Mesh(
             new THREE.BoxGeometry(0.45, 0.75, 0.08),
-            new THREE.MeshStandardMaterial({ color: 0xC8102E, emissive: 0xF2C14E, emissiveIntensity: 0.45 })
+            new THREE.MeshStandardMaterial({ color: PALETTE.crimson, emissive: PALETTE.moon100, emissiveIntensity: 0.45 })
           );
           scene.add(g);
           charmMap.set(c.id, g);
@@ -910,6 +944,7 @@
       mainMenuOverlay.style.display = 'none';
       resultOverlay.style.display = 'none';
       pauseOverlay.style.display = 'none';
+      document.getElementById('introBannerImg').src = NIGHT_INFO[night].banner || '/assets/bush.jpg';
       document.getElementById('introTitle').textContent = NIGHT_INFO[night].name;
       document.getElementById('introSpeech').textContent = NIGHT_INFO[night].speech;
       introOverlay.style.display = 'flex';
@@ -1042,9 +1077,12 @@
     function applySnapshot(snap) {
       buildNightEnvironment(snap.night);
       const [px, py, pz] = snap.player.pos;
+      const movedDist = Math.hypot(px - prevPlayerPos[0], pz - prevPlayerPos[2]);
+      prevPlayerPos = [px, py, pz];
       playerGroup.position.set(px, py, pz);
       playerGroup.rotation.y = snap.player_yaw || 0;
       playerGroup.visible = !snap.respawning && (!snap.player.invuln || snap.tick % 4 < 2);
+      updateMayAnimation(playerGroup, snap.tick, movedDist > 0.01, settings.reduceMotion);
 
       // Events SFX & Subtitles
       for (const ev of snap.events || []) {
@@ -1216,8 +1254,10 @@
         const saveBox = document.getElementById('saveScoreBox');
         document.getElementById('saveScoreBtn').disabled = false;
         document.getElementById('saveScoreMsg').textContent = '';
+        const resultBannerImg = document.getElementById('resultBannerImg');
         if (snap.state === 'won') {
           SFX.won();
+          if (resultBannerImg) resultBannerImg.src = '/assets/noel_moon.jpg';
           campaignScore += snap.score;
           nightsWonCount = snap.night;
           if (snap.night < 3) {
@@ -1237,6 +1277,7 @@
           }
         } else {
           SFX.lost();
+          if (resultBannerImg) resultBannerImg.src = '/assets/ghost.jpg';
           nightsWonCount = Math.max(0, snap.night - 1);
           saveBox.style.display = 'block';
           document.getElementById('resultTitle').textContent = `Thất Bại ở Đêm ${snap.night}`;
