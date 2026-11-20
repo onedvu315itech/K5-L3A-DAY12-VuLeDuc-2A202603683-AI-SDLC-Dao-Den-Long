@@ -77,3 +77,10 @@ Use **one skill per focused task**. Do not mix unrelated edits (e.g., do not edi
 - **Skill 5 (Build Entities & Interactions):** Replace early-win & permanent-lantern rules with integer-60th `fuel` (`max=100`, decay `1/s`, refuel `+10/mote`, `ever_lit` relight cost `5`, `lantern_out` at `0`), Shade `drain` state (`5/s` on lit lanterns with `fuel < 30`, `fuel_drain` every 60 ticks, `safe_radius` disabled when `fuel < 30`, push-out when refueled `>= 30`), progressive `capacity = min(20, 10 + 2 * successful_lights)`, dawn survival win rule (`lit >= ceil(0.6 * total)` at `time_left_s == 0`), and Ticket-03 scoring.
 - **Skill 6 (Build Headless & Test Contract CLI):** Upgrade `game.contract.json` and `game/src/headless.py` to **Contract v1.2** (new tuning keys, `fuel`/`ever_lit`/`relit_count`/`capacity`, `drain` state, `refuel`/`lantern_out`/`fuel_drain`/`relight`/`dawn_survived` events).
 - **Skill 8 (Build HUD, Menus & Audio):** Add per-lantern fuel bar + `1 Hz` low-fuel blink, unlit 20% squash + tear geometry, dynamic `10..20` mote bar, and persisted Colorblind Mode (`#00B3FF` shade rim/eyes, `#FFFFFF` + `⚠` danger UI).
+
+<!-- [Phase 4] Ticket-04 ("Bình minh: phát hành v1.0.0") & Contract v1.3 skills -->
+
+## Phase 4 Skill Extensions
+- **Skill 6 (Build Headless & Contract CLI):** Upgrade `game.contract.json` to `1.3` (`bench_cmd`, `soak_cmd`); implement `game/src/bench.py` (`--seed`, `--duration`, `--out`), `game/src/soak.py` (`--seed`, `--nights`, `--out`), and `game/src/play.py --export-leaderboard <out.json>`.
+- **Skill 8 (Build HUD, Menus, Leaderboard & Accessibility):** Add persistent Top-10 local leaderboard (`game/data/leaderboard.json` via `/api/leaderboard`), full key remapping with conflict check + restore defaults, `18px+` UI + `×1.25` large text mode, subtitles + shade-spawn edge arrow, and Reduce Motion toggle.
+- **Skill 9 (Package & Release v1.0.0):** *(Added in Phase 4)* Build runnable static/portable bundle, update `README.md`, `CHANGELOG.md` (Phases 1–4), `CREDITS.md`, `retro.md`, and run full verification (`verify.py` + `bench.py` + `soak.py`).

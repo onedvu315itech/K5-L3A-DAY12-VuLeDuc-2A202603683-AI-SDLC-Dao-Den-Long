@@ -160,3 +160,48 @@
    - `fuel_drain`: `{"lantern_id": str, "shade_id": str, "fuel": float}` (emitted every `60` ticks while draining)
    - `lantern_lit`: `{"lantern_id": str, "relight": bool}`
    - `game_over.reason`: `"dawn_survived"` | `"dawn"` | `"no_flames"` (`"all_lit"` removed).
+
+---
+
+<!-- [Phase 4] Upgraded to Test Contract v1.3 (Ticket-04) -->
+
+## Phase 4: Test Contract v1.3 Schemas & Owners
+
+### A. `game.contract.json` (`contract_version: "1.3"`)
+- Adds `"bench_cmd": "python3 game/src/bench.py"` and `"soak_cmd": "python3 game/src/soak.py"`.
+
+### B. Benchmark Output (`bench.json` via `game/src/bench.py`)
+- **Command:** `python3 game/src/bench.py --seed 42 --duration 30 --out bench.json`
+- **Schema:**
+```json
+{
+  "contract_version": "1.3",
+  "avg_fps": 60.0,
+  "p1_low_fps": 55.0,
+  "frame_ms_p95": 16.8,
+  "frames": 1800,
+  "load_ms": 420,
+  "peak_mem_mb": 45.2,
+  "vsync_off": true,
+  "renderer": "Three.js r170 WebGL / Python 3.12 Bench Runner",
+  "os": "Windows / macOS / Linux"
+}
+```
+
+### C. Soak Test Output (`soak.json` via `game/src/soak.py`)
+- **Command:** `python3 game/src/soak.py --seed 7 --nights 10 --out soak.json`
+- **Schema:**
+```json
+{
+  "nights": 10,
+  "crashes": 0,
+  "results": ["lost", "won"],
+  "mem_start_mb": 24.5,
+  "mem_end_mb": 25.1,
+  "duration_s": 12.4
+}
+```
+
+### D. Leaderboard Export (`out.json` via `game/src/play.py --export-leaderboard out.json`)
+- **Owner:** `game/src/core/leaderboard.py` ↔ `game/data/leaderboard.json`
+- **Schema:** `{"entries": [{"name": str, "score": int, "nights_won": int, "achieved_at": str, "seed": int}]}` (Top 10, `score` desc then `achieved_at` asc).

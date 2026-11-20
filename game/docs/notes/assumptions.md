@@ -68,6 +68,20 @@
   6. New scoring (`+5` deposit, `+100`/`+40` light, `+15` drain-pulse, dawn lantern+flame bonus) matches Ticket-03.
   7. Colorblind Mode toggle persists in `localStorage` and updates shade rim/eyes (`#00B3FF`), danger UI (`#FFFFFF` + `⚠`), and non-color unlit/low-fuel cues.
 
+## Phase 4 (Ticket-04 — "Bình minh: phát hành v1.0.0" & Contract v1.3)
+- **Assumptions:**
+  - **Benchmark Runner (`game/src/bench.py`):** Attempts to drive the real `1280×720` Three.js `?bench=1` scene via headless Chromium/Chrome/Edge (`--disable-gpu-vsync` / `--window-size=1280,720` + CDP/Playwright if available); if no browser binary/driver is present on the host, runs the exact deterministic benchmark scene (`200` wandering shades, `100` motes, `L1–L3` lit, `3s` warmup + `--duration`s orbit) in Python with `peak_mem_mb` measured from process RSS (`tracemalloc` / `resource` / `psutil` / `/proc/self/status`) and clearly reports `renderer` and `vsync_off` in `bench.json` & `README.md`.
+  - **Soak Seed:** Night `i` (`0..9`) uses `seed + i` (`7..16`), cycling Nights `1 -> 2 -> 3 -> 1 ...`, measuring RSS via `/proc/self/status` on Linux, `resource.getrusage` on macOS, or Windows `ctypes` `GetProcessMemoryInfo` (zero external dependencies).
+  - **Leaderboard:** Stored in `game/data/leaderboard.json`; validates `3–12` chars `[A-Za-z0-9_]` (and Vietnamese Unicode letters), keeps Top 10 sorted by `(-score, achieved_at)`, exposed in-game via `/api/leaderboard` and CLI `--export-leaderboard out.json`.
+  - **Accessibility:** Base HUD/menu font size `>= 18px` at `1280×720`, `×1.25` Large Text toggle, 9-action key remapping with conflict alert + Restore Defaults, subtitle bar + edge arrow for `shade_spawned`, and Reduce Motion toggle disabling camera shake & flashes.
+- **Acceptance Criteria:**
+  1. `game.contract.json` (`1.3`) includes `bench_cmd` and `soak_cmd` and matches `TUNING`.
+  2. `python3 game/src/bench.py --seed 42 --duration 30 --out bench.json` exits `0` and produces valid `bench.json`.
+  3. `python3 game/src/soak.py --seed 7 --nights 10 --out soak.json` exits `0` with `crashes == 0` and `mem_end_mb <= 1.2 * mem_start_mb`.
+  4. `python3 game/src/play.py --export-leaderboard out.json` outputs `{"entries": [...]}` sorted properly, persisting across restarts.
+  5. All accessibility controls (key remapping + conflict check, subtitles + shade arrow, reduce motion, `18px+` & `×1.25` large text) work in `game/web/index.html`.
+  6. Clean clone runs in ≤ 3 commands; `CHANGELOG.md` covers Phases 1–4; `CREDITS.md`, `LICENSE`, `retro.md`, `bench.json`, and `soak.json` are committed.
+
 ## Phase 2 (Ticket-02)
 - **Clarifications / Updates to Phase 1 Assumptions:**
   - *(List any assumptions refined or overridden.)*

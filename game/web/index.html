@@ -40,32 +40,38 @@
       margin: 0; padding: 0; width: 100%; height: 100%;
       overflow: hidden; background: var(--sky); color: var(--ui-text);
       font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      font-size: 18px;
       user-select: none;
     }
+    body.large-text {
+      font-size: 22.5px;
+      zoom: 1.25;
+    }
 
-    /* HUD Layout per Ticket-02 Part 3 */
+    /* HUD Layout per Ticket-02/04 (minimum 18px UI font) */
     .hud-box {
       position: fixed; z-index: 10;
       background: var(--panel-bg);
       border: 1px solid rgba(242, 193, 78, 0.45);
       border-radius: 10px;
       padding: 8px 14px;
+      font-size: 18px;
       backdrop-filter: blur(6px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
     }
-    #hudTopLeft { top: 14px; left: 14px; font-size: 15px; font-weight: 700; }
+    #hudTopLeft { top: 14px; left: 14px; font-size: 19px; font-weight: 700; }
     #hudTopCenter {
       top: 14px; left: 50%; transform: translateX(-50%);
-      text-align: center; min-width: 130px;
+      text-align: center; min-width: 150px;
     }
-    #hudTimer { font-size: 22px; font-weight: 800; letter-spacing: 0.04em; color: var(--ui-text); }
+    #hudTimer { font-size: 24px; font-weight: 800; letter-spacing: 0.04em; color: var(--ui-text); }
     #hudTimer.urgent { color: var(--danger); animation: blinkUrgent 0.7s infinite; }
     @keyframes blinkUrgent { 50% { opacity: 0.45; } }
-    #hudNightLabel { font-size: 11px; color: var(--gold); text-transform: uppercase; letter-spacing: 0.06em; }
+    #hudNightLabel { font-size: 18px; color: var(--gold); font-weight: 700; }
 
-    #hudTopRight { top: 14px; right: 14px; text-align: right; min-width: 170px; }
-    #hudLanterns { font-size: 15px; font-weight: 700; color: var(--lantern-lit); }
-    #hudScore { font-size: 14px; font-weight: 700; color: var(--gold); }
+    #hudTopRight { top: 14px; right: 14px; text-align: right; min-width: 180px; }
+    #hudLanterns { font-size: 18px; font-weight: 700; color: var(--lantern-lit); }
+    #hudScore { font-size: 18px; font-weight: 700; color: var(--gold); }
 
     #hudBottomCenter {
       bottom: 16px; left: 50%; transform: translateX(-50%);
@@ -90,26 +96,41 @@
       display: flex; gap: 10px; align-items: center;
     }
     .skill-badge {
-      min-width: 96px; text-align: center; padding: 6px 10px;
+      min-width: 110px; text-align: center; padding: 6px 10px;
       border-radius: 8px; border: 1px solid rgba(242, 193, 78, 0.4);
-      background: rgba(14, 20, 48, 0.75); font-size: 12px;
+      background: rgba(14, 20, 48, 0.75); font-size: 18px;
     }
-    .skill-badge .cd { font-weight: 700; font-size: 13px; color: var(--gold); margin-top: 2px; }
+    .skill-badge .cd { font-weight: 700; font-size: 18px; color: var(--gold); margin-top: 2px; }
     .skill-badge.cooling .cd { color: var(--danger); }
 
     #promptBanner {
-      position: fixed; bottom: 82px; left: 50%; transform: translateX(-50%);
+      position: fixed; bottom: 92px; left: 50%; transform: translateX(-50%);
       padding: 7px 16px; background: var(--panel-bg);
       border: 1px solid var(--gold); border-radius: 999px;
-      color: var(--mote-core); font-weight: 600; font-size: 13.5px;
+      color: var(--mote-core); font-weight: 600; font-size: 18px;
       z-index: 11; display: none;
     }
     #windBanner {
-      position: fixed; top: 84px; left: 50%; transform: translateX(-50%);
+      position: fixed; top: 96px; left: 50%; transform: translateX(-50%);
       padding: 5px 14px; background: rgba(200, 16, 46, 0.85);
       border: 1px solid var(--gold); border-radius: 999px;
-      color: var(--ui-text); font-weight: 700; font-size: 12.5px;
+      color: var(--ui-text); font-weight: 700; font-size: 18px;
       z-index: 11; display: none;
+    }
+    #subtitleBar {
+      position: fixed; bottom: 138px; left: 50%; transform: translateX(-50%);
+      padding: 6px 18px; background: rgba(14, 20, 48, 0.92);
+      border: 1.5px solid var(--gold); border-radius: 8px;
+      color: var(--ui-text); font-size: 18px; font-weight: 600;
+      z-index: 12; display: none; text-align: center;
+    }
+    #shadeArrow {
+      position: fixed; z-index: 12; display: none; pointer-events: none;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(18, 10, 26, 0.92);
+      border: 2px solid var(--danger);
+      color: var(--danger); font-weight: 900; font-size: 18px;
+      align-items: center; justify-content: center;
     }
 
     #offscreenArrow {
@@ -139,20 +160,35 @@
       box-shadow: 0 18px 46px rgba(0, 0, 0, 0.7);
     }
     .card h1, .card h2 { margin: 0 0 10px; color: var(--gold); }
-    .card p { margin: 8px 0; color: var(--ui-text); line-height: 1.5; font-size: 14.5px; }
+    .card p { margin: 8px 0; color: var(--ui-text); line-height: 1.5; font-size: 18px; }
     .btn-row { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
     .btn {
       padding: 10px 18px; border-radius: 8px; border: 1.5px solid var(--gold);
-      background: var(--gold); color: #120A1A; font-weight: 700; font-size: 14px;
+      background: var(--gold); color: #120A1A; font-weight: 700; font-size: 18px;
       cursor: pointer;
     }
     .btn.secondary { background: transparent; color: var(--ui-text); }
     .btn:hover { filter: brightness(1.08); }
     .setting-row {
       display: flex; justify-content: space-between; align-items: center;
-      margin: 12px 0; font-size: 14px;
+      margin: 8px 0; font-size: 18px;
     }
     .setting-row input[type="range"] { width: 170px; accent-color: var(--gold); }
+    .keybind-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px;
+      text-align: left; font-size: 18px; margin-top: 8px;
+    }
+    .keybind-btn {
+      padding: 4px 10px; background: rgba(255,255,255,0.1);
+      border: 1px solid var(--gold); border-radius: 6px;
+      color: var(--gold); font-size: 18px; font-weight: 700; cursor: pointer;
+    }
+    table.lb-table {
+      width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 18px;
+    }
+    table.lb-table th, table.lb-table td {
+      padding: 5px 8px; border-bottom: 1px solid rgba(242,193,78,0.25); text-align: left;
+    }
   </style>
 </head>
 <body>
@@ -190,7 +226,9 @@
 
   <div id="promptBanner">E — Nạp ánh sáng (0/10)</div>
   <div id="windBanner">⚠ Gió mạnh sắp thổi!</div>
+  <div id="subtitleBar"></div>
   <div id="offscreenArrow">➤</div>
+  <div id="shadeArrow">⚠</div>
 
   <!-- Main Menu -->
   <div id="mainMenuOverlay" class="overlay" style="display:flex;">
@@ -201,7 +239,19 @@
         <button class="btn" id="startCampaignBtn">Bắt đầu từ Đêm 1</button>
         <button class="btn secondary" id="selectN2Btn">Chơi thử Đêm 2 — Đảo Cau</button>
         <button class="btn secondary" id="selectN3Btn">Chơi thử Đêm 3 — Đảo Chuông</button>
-        <button class="btn secondary" id="openSettingsFromMenuBtn">Cài đặt</button>
+        <button class="btn secondary" id="openLeaderboardBtn">Bảng xếp hạng</button>
+        <button class="btn secondary" id="openSettingsFromMenuBtn">Cài đặt & Đổi phím</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Leaderboard Modal -->
+  <div id="leaderboardOverlay" class="overlay">
+    <div class="card" style="width:min(540px,95vw);">
+      <h2>Bảng Xếp Hạng (Top 10)</h2>
+      <div id="leaderboardList"></div>
+      <div class="btn-row">
+        <button class="btn" id="closeLeaderboardBtn">Đóng</button>
       </div>
     </div>
   </div>
@@ -246,7 +296,18 @@
         <label for="cbToggle">Bảng màu dễ phân biệt</label>
         <input id="cbToggle" type="checkbox" />
       </div>
+      <div class="setting-row">
+        <label for="rmToggle">Giảm chuyển động</label>
+        <input id="rmToggle" type="checkbox" />
+      </div>
+      <div class="setting-row">
+        <label for="ltToggle">Chữ lớn (×1.25)</label>
+        <input id="ltToggle" type="checkbox" />
+      </div>
+      <div id="keybindContainer" class="keybind-grid"></div>
+      <div id="keyConflictMsg" style="color:var(--danger);font-size:18px;min-height:22px;margin-top:4px;"></div>
       <div class="btn-row">
+        <button class="btn secondary" id="resetKeybindsBtn">Khôi phục mặc định</button>
         <button class="btn" id="closeSettingsBtn">Lưu & Đóng</button>
       </div>
     </div>
@@ -257,7 +318,12 @@
     <div class="card">
       <h2 id="resultTitle">Hoàn Thành Đêm!</h2>
       <p id="resultReason"></p>
-      <p id="resultScore" style="font-size:18px;font-weight:700;color:var(--gold);"></p>
+      <p id="resultScore" style="font-size:19px;font-weight:700;color:var(--gold);"></p>
+      <div id="saveScoreBox" style="margin:10px 0;display:none;">
+        <input id="playerNameInput" type="text" maxlength="12" placeholder="Tên (3-12 ký tự)" style="padding:6px 10px;font-size:18px;border-radius:6px;border:1px solid var(--gold);background:#0E1430;color:var(--ui-text);width:190px;" />
+        <button class="btn" id="saveScoreBtn" style="padding:6px 12px;margin-left:6px;">Lưu điểm</button>
+        <div id="saveScoreMsg" style="font-size:18px;color:var(--lantern-core);margin-top:4px;"></div>
+      </div>
       <div class="btn-row">
         <button class="btn" id="resultPrimaryBtn">Đêm kế tiếp</button>
         <button class="btn secondary" id="resultMenuBtn">Về menu</button>
@@ -274,19 +340,92 @@
       3: { name: 'Đêm 3 · Đảo Chuông', speech: 'Ông Đăng: "Đảo Chuông ba tầng cao gió lộng. Hãy leo dốc, phóng bục nhảy lên Tháp Chuông và thắp sáng cả 7 ngọn đèn để đón Bình Minh!"' },
     };
 
-    // Persisted Settings
+    // Persisted Settings & Keybinds
+    const DEFAULT_BINDS = {
+      moveUp: 'w',
+      moveDown: 's',
+      moveLeft: 'a',
+      moveRight: 'd',
+      jump: ' ',
+      dash: 'shift',
+      interact: 'e',
+      pulse: 'f',
+      pause: 'p',
+    };
+    const BIND_LABELS = {
+      moveUp: 'Tiến lên',
+      moveDown: 'Lùi lại',
+      moveLeft: 'Sang trái',
+      moveRight: 'Sang phải',
+      jump: 'Nhảy',
+      dash: 'Lướt',
+      interact: 'Tương tác',
+      pulse: 'Tỏa Sáng',
+      pause: 'Tạm dừng',
+    };
+    let keybinds = { ...DEFAULT_BINDS };
+    try {
+      const savedBinds = JSON.parse(localStorage.getItem('ddl_keybinds') || 'null');
+      if (savedBinds && typeof savedBinds === 'object') keybinds = { ...DEFAULT_BINDS, ...savedBinds };
+    } catch (_e) {}
+
     const settings = {
       volume: Number(localStorage.getItem('ddl_volume') ?? 60),
       sensitivity: Number(localStorage.getItem('ddl_sens') ?? 45),
       colorblind: localStorage.getItem('ddl_colorblind') === 'true',
+      reduceMotion: localStorage.getItem('ddl_reducemotion') === 'true',
+      largeText: localStorage.getItem('ddl_largetext') === 'true',
     };
     const volSlider = document.getElementById('volSlider');
     const sensSlider = document.getElementById('sensSlider');
     const cbToggle = document.getElementById('cbToggle');
+    const rmToggle = document.getElementById('rmToggle');
+    const ltToggle = document.getElementById('ltToggle');
     volSlider.value = settings.volume;
     sensSlider.value = settings.sensitivity;
     cbToggle.checked = settings.colorblind;
+    rmToggle.checked = settings.reduceMotion;
+    ltToggle.checked = settings.largeText;
     document.body.classList.toggle('colorblind', settings.colorblind);
+    document.body.classList.toggle('large-text', settings.largeText);
+
+    const keybindContainer = document.getElementById('keybindContainer');
+    const keyConflictMsg = document.getElementById('keyConflictMsg');
+    let listeningAction = null;
+
+    function formatKeyName(k) {
+      if (k === ' ') return 'Space';
+      return k.length === 1 ? k.toUpperCase() : k;
+    }
+    function renderKeybindUI() {
+      keybindContainer.innerHTML = '';
+      for (const [act, label] of Object.entries(BIND_LABELS)) {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        const span = document.createElement('span');
+        span.textContent = label;
+        const btn = document.createElement('button');
+        btn.className = 'keybind-btn';
+        btn.textContent = listeningAction === act ? '...' : formatKeyName(keybinds[act]);
+        btn.onclick = () => {
+          listeningAction = act;
+          keyConflictMsg.textContent = `Nhấn phím mới cho "${label}"...`;
+          renderKeybindUI();
+        };
+        row.append(span, btn);
+        keybindContainer.appendChild(row);
+      }
+    }
+    renderKeybindUI();
+    document.getElementById('resetKeybindsBtn').onclick = () => {
+      keybinds = { ...DEFAULT_BINDS };
+      localStorage.setItem('ddl_keybinds', JSON.stringify(keybinds));
+      listeningAction = null;
+      keyConflictMsg.textContent = 'Đã khôi phục phím mặc định.';
+      renderKeybindUI();
+    };
 
     // Procedural Web Audio API (no external audio files needed)
     let audioCtx = null;
@@ -725,17 +864,32 @@
     let camYawDeg = 0.0, dragging = false, lastX = 0;
 
     window.addEventListener('keydown', (e) => {
-      const k = e.key.toLowerCase();
+      const k = e.key === ' ' ? ' ' : e.key.toLowerCase();
+      if (listeningAction) {
+        e.preventDefault();
+        const conflict = Object.entries(keybinds).find(([a, v]) => a !== listeningAction && v === k);
+        if (conflict) {
+          keyConflictMsg.textContent = `⚠ Phím "${formatKeyName(k)}" đã dùng cho "${BIND_LABELS[conflict[0]]}"!`;
+          return;
+        }
+        keybinds[listeningAction] = k;
+        localStorage.setItem('ddl_keybinds', JSON.stringify(keybinds));
+        keyConflictMsg.textContent = '';
+        listeningAction = null;
+        renderKeybindUI();
+        return;
+      }
+      if (document.activeElement === document.getElementById('playerNameInput')) return;
       keys.add(k);
-      if (e.code === 'Space') { latchJump = true; e.preventDefault(); }
-      if (k === 'e') latchInteract = true;
-      if (k === 'f' || k === 'j') latchPulse = true;
-      if (e.key === 'Shift') latchDash = true;
-      if (e.key === 'Escape' || k === 'p') {
+      if (k === keybinds.jump) { latchJump = true; e.preventDefault(); }
+      if (k === keybinds.interact) latchInteract = true;
+      if (k === keybinds.pulse || k === 'j') latchPulse = true;
+      if (k === keybinds.dash) latchDash = true;
+      if (e.key === 'Escape' || k === keybinds.pause) {
         if (mode === 'playing' || mode === 'paused') latchPause = true;
       }
     });
-    window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+    window.addEventListener('keyup', (e) => keys.delete(e.key === ' ' ? ' ' : e.key.toLowerCase()));
     window.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; });
     window.addEventListener('mouseup', () => { dragging = false; });
     window.addEventListener('mousemove', (e) => {
@@ -804,14 +958,77 @@
       settings.volume = Number(volSlider.value);
       settings.sensitivity = Number(sensSlider.value);
       settings.colorblind = Boolean(cbToggle.checked);
+      settings.reduceMotion = Boolean(rmToggle.checked);
+      settings.largeText = Boolean(ltToggle.checked);
       localStorage.setItem('ddl_volume', String(settings.volume));
       localStorage.setItem('ddl_sens', String(settings.sensitivity));
       localStorage.setItem('ddl_colorblind', String(settings.colorblind));
+      localStorage.setItem('ddl_reducemotion', String(settings.reduceMotion));
+      localStorage.setItem('ddl_largetext', String(settings.largeText));
       document.body.classList.toggle('colorblind', settings.colorblind);
+      document.body.classList.toggle('large-text', settings.largeText);
       if (ambientGain) ambientGain.gain.value = (settings.volume / 100) * 0.08;
       settingsOverlay.style.display = 'none';
       if (settingsReturnMode === 'menu') mainMenuOverlay.style.display = 'flex';
       else pauseOverlay.style.display = 'flex';
+    };
+
+    // Leaderboard UI
+    const leaderboardOverlay = document.getElementById('leaderboardOverlay');
+    const leaderboardList = document.getElementById('leaderboardList');
+    async function refreshLeaderboard() {
+      const res = await fetch('/api/leaderboard');
+      const data = await res.json();
+      const entries = data.entries || [];
+      if (!entries.length) {
+        leaderboardList.innerHTML = '<p>Chưa có kỷ lục nào.</p>';
+        return;
+      }
+      let html = '<table class="lb-table"><thead><tr><th>#</th><th>Tên</th><th>Điểm</th><th>Đêm thắng</th></tr></thead><tbody>';
+      entries.forEach((e, idx) => {
+        html += `<tr><td>${idx + 1}</td><td>${e.name}</td><td>${e.score}</td><td>${e.nights_won}/3</td></tr>`;
+      });
+      html += '</tbody></table>';
+      leaderboardList.innerHTML = html;
+    }
+    document.getElementById('openLeaderboardBtn').onclick = async () => {
+      mainMenuOverlay.style.display = 'none';
+      await refreshLeaderboard();
+      leaderboardOverlay.style.display = 'flex';
+    };
+    document.getElementById('closeLeaderboardBtn').onclick = () => {
+      leaderboardOverlay.style.display = 'none';
+      mainMenuOverlay.style.display = 'flex';
+    };
+
+    let nightsWonCount = 0;
+    let subtitleUntilTick = 0;
+    let lastSpawnedShadeId = null;
+    let shadeArrowUntilTick = 0;
+    const subtitleBar = document.getElementById('subtitleBar');
+    const shadeArrow = document.getElementById('shadeArrow');
+
+    function showSubtitle(text, currentTick, durationTicks = 150) {
+      subtitleBar.textContent = text;
+      subtitleBar.style.display = 'block';
+      subtitleUntilTick = currentTick + durationTicks;
+    }
+
+    document.getElementById('saveScoreBtn').onclick = async () => {
+      const nameVal = document.getElementById('playerNameInput').value.trim();
+      const msgEl = document.getElementById('saveScoreMsg');
+      const res = await fetch('/api/leaderboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameVal, score: campaignScore, nights_won: nightsWonCount, seed: 42 }),
+      });
+      const out = await res.json();
+      if (!res.ok) {
+        msgEl.textContent = out.error || 'Tên không hợp lệ (3–12 ký tự).';
+      } else {
+        msgEl.textContent = '✓ Đã lưu vào Bảng xếp hạng!';
+        document.getElementById('saveScoreBtn').disabled = true;
+      }
     };
     document.getElementById('resultMenuBtn').onclick = () => {
       mode = 'menu'; resultOverlay.style.display = 'none'; mainMenuOverlay.style.display = 'flex';
@@ -829,14 +1046,55 @@
       playerGroup.rotation.y = snap.player_yaw || 0;
       playerGroup.visible = !snap.respawning && (!snap.player.invuln || snap.tick % 4 < 2);
 
-      // Events SFX
+      // Events SFX & Subtitles
       for (const ev of snap.events || []) {
         if (ev.name === 'mote_picked') SFX.pickup();
         else if (ev.name === 'lantern_lit') SFX.lantern();
         else if (ev.name === 'pulse') SFX.pulse();
-        else if (ev.name === 'player_hit') SFX.hit();
+        else if (ev.name === 'player_hit') {
+          SFX.hit();
+          showSubtitle('⚠ Mây bị mất 1 Ngọn Lửa!', snap.tick, 120);
+        }
         else if (ev.name === 'dash') SFX.dash();
-        else if (ev.name === 'shade_spawned') SFX.spawn();
+        else if (ev.name === 'shade_spawned') {
+          SFX.spawn();
+          lastSpawnedShadeId = ev.data?.id || null;
+          shadeArrowUntilTick = snap.tick + 180;
+          showSubtitle('⚠ [Phụ đề] Bóng Mực vừa xuất hiện từ sương đen!', snap.tick, 150);
+        }
+        else if (ev.name === 'lantern_out') {
+          showSubtitle(`⚠ [Phụ đề] Đèn ${ev.data?.lantern_id} đã cạn dầu và tắt!`, snap.tick, 150);
+        }
+      }
+      if (snap.wind_warning) {
+        showSubtitle('⚠ [Phụ đề] Gió mạnh sắp thổi sau 2 giây!', snap.tick, 60);
+      } else if (snap.time_left_s <= 10.0 && snap.time_left_s > 0) {
+        showSubtitle(`⚠ [Phụ đề] 10 giây cuối trước Bình Minh (${Math.ceil(snap.time_left_s)}s)!`, snap.tick, 60);
+      } else if (snap.lanterns.some((l) => l.lit && l.fuel < 30.0)) {
+        if (snap.tick > subtitleUntilTick) {
+          showSubtitle('⚠ [Phụ đề] Có Đèn Lồng Lớn đang cạn dầu (< 30)!', snap.tick, 60);
+        }
+      }
+      if (snap.tick > subtitleUntilTick) {
+        subtitleBar.style.display = 'none';
+      }
+
+      // Shade spawn directional arrow on screen edge
+      const spawnedShade = lastSpawnedShadeId ? (snap.shades || []).find((s) => s.id === lastSpawnedShadeId) : null;
+      if (spawnedShade && snap.tick <= shadeArrowUntilTick && snap.state === 'playing') {
+        const sv = new THREE.Vector3(spawnedShade.pos[0], spawnedShade.pos[1] + 1.0, spawnedShade.pos[2]);
+        sv.project(camera);
+        let sx = sv.x, sy = sv.y;
+        if (sv.z > 1) { sx = -sx; sy = -sy; }
+        const ang = Math.atan2(sy, sx);
+        const margin = 52;
+        const cx = window.innerWidth / 2 + Math.cos(ang) * (window.innerWidth / 2 - margin);
+        const cy = window.innerHeight / 2 - Math.sin(ang) * (window.innerHeight / 2 - margin);
+        shadeArrow.style.display = 'flex';
+        shadeArrow.style.left = `${cx - 18}px`;
+        shadeArrow.style.top = `${cy - 18}px`;
+      } else {
+        shadeArrow.style.display = 'none';
       }
 
       if (snap.last_pulse_tick > 0 && snap.last_pulse_tick !== seenPulseTick) {
@@ -955,28 +1213,36 @@
         mode = 'result';
         resultOverlay.style.display = 'flex';
         const btn = document.getElementById('resultPrimaryBtn');
+        const saveBox = document.getElementById('saveScoreBox');
+        document.getElementById('saveScoreBtn').disabled = false;
+        document.getElementById('saveScoreMsg').textContent = '';
         if (snap.state === 'won') {
           SFX.won();
           campaignScore += snap.score;
+          nightsWonCount = snap.night;
           if (snap.night < 3) {
+            saveBox.style.display = 'none';
             document.getElementById('resultTitle').textContent = `Thắng Đêm ${snap.night}!`;
             document.getElementById('resultReason').textContent = 'Mây đã giữ đủ Đèn Lồng Lớn sáng tới bình minh!';
             document.getElementById('resultScore').textContent = `Điểm Đêm ${snap.night}: ${snap.score} · Tổng: ${campaignScore}`;
             btn.textContent = `Sang Đêm ${snap.night + 1}`;
             btn.onclick = () => showIntro(snap.night + 1);
           } else {
+            saveBox.style.display = 'block';
             document.getElementById('resultTitle').textContent = 'Bình Minh Đã Lên!';
             document.getElementById('resultReason').textContent = 'Mây đã giữ đảo sáng qua cả Ba Đêm!';
             document.getElementById('resultScore').textContent = `Tổng điểm chiến dịch: ${campaignScore}`;
             btn.textContent = 'Chơi lại từ Đêm 1';
-            btn.onclick = () => { campaignScore = 0; showIntro(1); };
+            btn.onclick = () => { campaignScore = 0; nightsWonCount = 0; showIntro(1); };
           }
         } else {
           SFX.lost();
+          nightsWonCount = Math.max(0, snap.night - 1);
+          saveBox.style.display = 'block';
           document.getElementById('resultTitle').textContent = `Thất Bại ở Đêm ${snap.night}`;
           document.getElementById('resultReason').textContent =
             snap.game_over_reason === 'dawn' ? 'Hết giờ trước khi thắp đủ đèn.' : 'Mây đã mất hết Ngọn Lửa.';
-          document.getElementById('resultScore').textContent = `Điểm Đêm này: ${snap.score}`;
+          document.getElementById('resultScore').textContent = `Tổng điểm các Đêm đã thắng: ${campaignScore}`;
           btn.textContent = 'Chơi lại Đêm này';
           btn.onclick = () => startNight(snap.night);
         }
@@ -1003,10 +1269,10 @@
         try {
           let mx = 0, mz = 0;
           if (mode === 'playing') {
-            if (keys.has('w') || keys.has('arrowup')) mz += 1;
-            if (keys.has('s') || keys.has('arrowdown')) mz -= 1;
-            if (keys.has('a')) mx += 1;
-            if (keys.has('d')) mx -= 1;
+            if (keys.has(keybinds.moveUp) || keys.has('arrowup')) mz += 1;
+            if (keys.has(keybinds.moveDown) || keys.has('arrowdown')) mz -= 1;
+            if (keys.has(keybinds.moveLeft)) mx += 1;
+            if (keys.has(keybinds.moveRight)) mx -= 1;
           }
           if (latchJump) SFX.jump();
           const body = {
@@ -1029,6 +1295,30 @@
 
     fetch('/api/state').then((r) => r.json()).then((s) => { buildNightEnvironment(s.night); applySnapshot(s); });
     requestAnimationFrame(loop);
+
+    // Optional Browser Benchmark Mode (?bench=1&seed=42&duration=30)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('bench') === '1') {
+      mainMenuOverlay.style.display = 'none';
+      mode = 'bench';
+      const benchDur = Number(urlParams.get('duration') || 30) * 1000;
+      const tStart = performance.now();
+      let tLast = tStart;
+      const dts = [];
+      function benchLoop(now) {
+        const elapsed = now - tStart;
+        const dt = now - tLast;
+        tLast = now;
+        if (elapsed >= 3000) dts.push(dt);
+        const sec = elapsed / 1000;
+        const ang = ((2 * Math.PI) / 15) * sec;
+        camera.position.set(30 * Math.cos(ang), 15, -30 * Math.sin(ang));
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+        if (elapsed < 3000 + benchDur) requestAnimationFrame(benchLoop);
+      }
+      requestAnimationFrame(benchLoop);
+    }
   </script>
 </body>
 </html>

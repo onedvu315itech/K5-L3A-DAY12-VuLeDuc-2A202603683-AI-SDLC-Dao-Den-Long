@@ -34,8 +34,9 @@ Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/p
 - **Thắng khi giữ đảo sáng tới Bình Minh (`dawn_survived`):** Đêm 1/2/3 (`240/270/300s`) cần ≥ `60%` số đèn đang sáng (`3/5`, `4/6`, `5/7`); thưởng `+50 + floor(fuel)` mỗi đèn sáng + `+50` mỗi Ngọn Lửa còn lại.
 - **Tài liệu thay đổi Phase 3:** Xem [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) và [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CHANGELOG.md).
 
-### Tests & Headless Mode (Test Contract v1.1)
-- **Run full verification suite (unit tests + Nights 1–3 headless + 21,600-tick determinism & perf):**
+### Tests, Headless, Benchmark, Soak & Leaderboard (Test Contract v1.3)
+- **System Requirements:** Python `>= 3.11` (stdlib only, zero third-party packages) + modern WebGL browser (Chrome / Edge / Firefox / Safari) on macOS, Linux, or Windows.
+- **Run full verification suite (16 unit/contract tests + Nights 1–3 headless determinism):**
   ```bash
   python3 game/scripts/verify.py
   ```
@@ -43,6 +44,22 @@ Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/p
   ```bash
   python3 game/src/headless.py --seed 42 --night 3 --ticks 21600 --out out.jsonl --snapshot-every 60
   ```
+- **Run 30s Benchmark (`bench.json`):**
+  ```bash
+  python3 game/src/bench.py --seed 42 --duration 30 --out bench.json
+  ```
+  *(Note: In browser mode `http://127.0.0.1:8000/?bench=1&seed=42&duration=30`, WebGL `requestAnimationFrame` vsync is managed by the browser/OS unless launched with `--disable-gpu-vsync`; CLI `bench.py` runs uncapped with `vsync_off: true`.)*
+- **Run 10-Night Soak Test (`soak.json`):**
+  ```bash
+  python3 game/src/soak.py --seed 7 --nights 10 --out soak.json
+  ```
+- **Export Top-10 Local Leaderboard:**
+  ```bash
+  python3 game/src/play.py --export-leaderboard out.json
+  ```
+- **Documentation & Proof:**
+  - [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CHANGELOG.md) · [CREDITS.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CREDITS.md) · [LICENSE](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/LICENSE)
+  - [Phase 1–4 Proofs](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/proof/README.md) · [Assumptions](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/assumptions.md) · [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) · [AI & Token Log](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/ai-log.md) · [Retrospective](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/retro.md)
 
 ### Sáng tạo của tôi
 - **Đèn Hoa Đăng Bến Nước (Shoreline Floating Lotus Lanterns):** Vòng 10 chiếc đèn hoa đăng trôi nhẹ quanh bờ nước Đảo Bến. Mỗi khi Mây thắp sáng thêm 1 Đèn Lồng Lớn, 2 cụm đèn hoa đăng nơi bến nước sẽ tự động bừng sáng ấm áp đồng điệu cùng ánh sáng dần xua tan sương đen trên đảo.

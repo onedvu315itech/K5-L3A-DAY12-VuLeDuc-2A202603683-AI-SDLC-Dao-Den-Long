@@ -9,4 +9,4 @@ Every requirement must map to a concrete verification method, saved output/scree
 | Phase 1 | `phase-1` | [phase-1.md](phase-1.md) | PASS |
 | Phase 2 | `phase-2` | [phase-2.md](phase-2.md) | PASS |
 | Phase 3 | `phase-3` | [phase-3.md](phase-3.md) | PASS |
-| Phase 4 | `phase-4` | `phase-4.md` | Pending |
+| Phase 4 | `phase-4` / `v1.0.0` | [phase-4.md](phase-4.md) | PASS |

@@ -14,23 +14,65 @@ import threading
 import time
 import unittest
 
+from src.bench import build_benchmark_engine, run_benchmark
 from src.core.config import TUNING
 from src.core.engine import ContractValidationError, GameEngine, StepInput, parse_inputs_frames
+from src.core.leaderboard import add_leaderboard_entry, export_leaderboard, load_leaderboard
 from src.headless import format_jsonl, run_contract_simulation
 from src.play import GameRequestHandler, GameServerState
+from src.soak import run_soak_test
 
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 GAME_ROOT = Path(__file__).resolve().parent.parent
 
 
-class TestPhase3ContractAndFeatures(unittest.TestCase):
-    def test_contract_v12_json_matches_tuning(self) -> None:
+class TestPhase4ContractAndRelease(unittest.TestCase):
+    def test_contract_v13_json_matches_tuning(self) -> None:
         contract_path = REPO_ROOT / "game.contract.json"
         self.assertTrue(contract_path.is_file(), "game.contract.json must exist at repo root")
         data = json.loads(contract_path.read_text(encoding="utf-8"))
-        self.assertEqual(data["contract_version"], "1.2")
+        self.assertEqual(data["contract_version"], "1.3")
+        self.assertIn("bench_cmd", data)
+        self.assertIn("soak_cmd", data)
         self.assertEqual(data["tuning"], TUNING.to_dict())
+
+    def test_benchmark_scene_and_runner(self) -> None:
+        b_eng = build_benchmark_engine(seed=42)
+        self.assertEqual(len(b_eng.shades), 200)
+        self.assertEqual(len(b_eng.motes), 100)
+        self.assertEqual(sum(1 for l in b_eng.lanterns if l.lit and l.fuel == 100.0), 3)
+
+        rep = run_benchmark(seed=42, duration_s=0.4, warmup_s=0.1)
+        self.assertEqual(rep["contract_version"], "1.3")
+        self.assertGreaterEqual(rep["avg_fps"], 60.0)
+        self.assertGreaterEqual(rep["p1_low_fps"], 30.0)
+        self.assertLessEqual(rep["load_ms"], 10000)
+
+    def test_soak_runner_stability_and_memory(self) -> None:
+        rep = run_soak_test(seed=7, nights=3)
+        self.assertEqual(rep["crashes"], 0)
+        self.assertEqual(len(rep["results"]), 3)
+        self.assertLessEqual(rep["mem_end_mb"], 1.2 * rep["mem_start_mb"] + 1.0)
+
+    def test_leaderboard_top10_sort_and_cli_export(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            lb_path = Path(tmp) / "lb.json"
+            out_path = Path(tmp) / "export.json"
+            for i in range(12):
+                add_leaderboard_entry(
+                    name=f"May_{i:02d}",
+                    score=100 + (i % 5) * 50,
+                    nights_won=i % 4,
+                    seed=42,
+                    achieved_at=f"2026-11-20T17:00:{i:02d}+07:00",
+                    path=lb_path,
+                )
+            loaded = load_leaderboard(lb_path)
+            self.assertEqual(len(loaded), 10)
+            self.assertGreaterEqual(loaded[0]["score"], loaded[1]["score"])
+            exported = export_leaderboard(out_path, src_path=lb_path)
+            self.assertEqual(len(exported["entries"]), 10)
 
     def test_standardized_movement_jump_and_dash(self) -> None:
         engine = GameEngine(seed=42, night=1)

@@ -216,3 +216,15 @@ All 3D procedural geometry and 2D/UI decorative elements translate the reference
 - **Colorblind Mode (`Bảng màu dễ phân biệt`, persisted in `localStorage`):**
   - Shadow Ink rim & eyes change from `#7A3CFF` to `#00B3FF`.
   - Danger UI color changes from `#FF5A5F` to `#FFFFFF` paired with a `⚠` icon.
+
+---
+
+<!-- [Phase 4] Ticket-04 ("Bình minh: phát hành v1.0.0") accessibility, leaderboard UI, subtitles, and 18px+ typography -->
+
+## 10. Phase 4: Accessibility, Leaderboard & Benchmark View
+- **UI Typography:** Minimum `18px` base UI font size at `1280×720`, with a persisted **Chữ lớn (`×1.25`)** toggle (`body.large-text`).
+- **Key Remapping UI:** Settings modal allows rebinding all 9 actions (Up/Down/Left/Right, Jump, Dash, Interact, Pulse, Pause), detects key conflicts with inline warning, and provides **Khôi phục mặc định**.
+- **Subtitles & Visual Indicators:** On-screen subtitle bar + edge directional arrows for **Bóng Mực xuất hiện** (pointing toward spawn), **Gió sắp thổi**, **10 giây cuối**, and **Đèn sắp cạn dầu (`fuel < 30`)**.
+- **Reduce Motion (`Giảm chuyển động`):** Disables camera shake, screen flash, and decorative motion, persisted in `localStorage`.
+- **Leaderboard Screen:** Accessible from Main Menu + Name-entry modal (`3–12` chars `[A-Za-z0-9_]` / Vietnamese) on Dawn Victory or Night Loss.
+- **Benchmark Scene (`?bench=1`):** `1280×720` Night 1 scene with `200` wandering shades, `100` motes, `L1..L3` lit (`fuel=100`), camera orbiting `(0,0,0)` at `R=30m, Y=15m`, `15s/rev` CCW, zero creative props/HUD clutter.
