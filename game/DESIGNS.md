@@ -203,3 +203,16 @@ All 3D procedural geometry and 2D/UI decorative elements translate the reference
 - **Pause (`Esc`/`P`) & Settings:** Resume / Restart Night / Settings (Volume & Mouse Sensitivity saved in `localStorage`) / Main Menu.
 - **Full HUD:** Flames (top-left), `mm:ss` timer (top-center; turns `#FF5A5F` & blinks at `<=30s`), `k/n` lanterns & score (top-right), 10-slot firefly bar (bottom-center), Dash & Pulse cooldown icons (bottom-right), `"E — Nạp ánh sáng (x/10)"` prompt near unlit lantern, off-screen directional arrow to nearest unlit lantern.
 - **Procedural Audio (Web Audio API):** Ambient night sound + SFX for pickup, light lantern, pulse, hit, jump, dash, win, lose, shade spawn, and final 10s countdown.
+
+---
+
+<!-- [Phase 3] Ticket-03 ("Đèn cạn dầu") fuel bars, low-fuel blink, and Colorblind Mode -->
+
+## 9. Phase 3: Lantern Fuel Visuals & Colorblind Mode
+- **Lantern Fuel Bar & Low-Fuel Alert:**
+  - Lit lanterns display a fuel bar (`0..100`) above the lantern; when `fuel < 30`, both the lantern glow and fuel bar blink slowly at **1 Hz**.
+  - Unlit lanterns are distinguishable **without color**: orb squashed vertically by **20%** (`scale.y = 0.8`) with visible paper tear/crack strips.
+- **Dynamic Capacity HUD:** Bottom-center firefly bar scales dynamically up to `player.capacity` (`10..20`), showing `carried / capacity`.
+- **Colorblind Mode (`Bảng màu dễ phân biệt`, persisted in `localStorage`):**
+  - Shadow Ink rim & eyes change from `#7A3CFF` to `#00B3FF`.
+  - Danger UI color changes from `#FF5A5F` to `#FFFFFF` paired with a `⚠` icon.

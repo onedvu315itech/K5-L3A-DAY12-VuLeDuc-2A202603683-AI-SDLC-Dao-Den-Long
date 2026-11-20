@@ -1,4 +1,4 @@
-"""Deterministic 60Hz simulation engine for Đảo Đèn Lồng (Phase 2 / Ticket-02 / Contract v1.1)."""
+"""Deterministic 60Hz simulation engine for Đảo Đèn Lồng (Phase 3 / Ticket-03 / Contract v1.2)."""
 
 from __future__ import annotations
 
@@ -24,6 +24,11 @@ from src.core.config import (
     DRIFTER_STUN_FLEE_TICKS,
     DROPPED_MOTE_TTL_TICKS,
     FIXED_DT,
+    FUEL_DECAY_SIXTIES_PER_TICK,
+    FUEL_DRAIN_SIXTIES_PER_TICK,
+    FUEL_LOW_SIXTIES,
+    FUEL_MAX_SIXTIES,
+    FUEL_PER_MOTE_SIXTIES,
     GRAVITY,
     INITIAL_RANDOM_MOTES,
     INVULN_TICKS,
@@ -39,6 +44,8 @@ from src.core.config import (
     RESPAWN_WAIT_TICKS,
     SAFE_PUSH_TICKS,
     SHADE_DETECT_RADIUS,
+    SHADE_DRAIN_CHASE_RADIUS,
+    SHADE_DRAIN_RADIUS,
     SHADE_FIRST_SPAWN_TICK,
     SHADE_LOSE_RADIUS,
     SHADE_NIGHT3_SPEED,
@@ -62,10 +69,10 @@ from src.core.maps import (
 
 
 class ContractValidationError(ValueError):
-    """Raised when scenario or inputs JSON violates Test Contract v1.1 (exit code 2)."""
+    """Raised when scenario or inputs JSON violates Test Contract v1.2 (exit code 2)."""
 
 
-VALID_SHADE_STATES = {"spawning", "wander", "chase", "recoil", "stunned"}
+VALID_SHADE_STATES = {"spawning", "wander", "chase", "recoil", "stunned", "drain"}
 VALID_DRIFTER_STATES = {"idle", "chase", "flee", "removed"}
 
 
@@ -85,6 +92,11 @@ def _validate_pos3(val: Any, label: str) -> tuple[float, float, float]:
 
 def _round3(val: float) -> float:
     r = round(float(val), 3)
+    return 0.0 if r == 0.0 else r
+
+
+def _round1(val: float) -> float:
+    r = round(float(val), 1)
     return 0.0 if r == 0.0 else r
 
 
@@ -114,6 +126,7 @@ class Player:
     grounded: bool = True
     flames: int = TUNING.flames
     carried: int = 0
+    successful_lights: int = 0
     invuln_ticks: int = 0
     dash_ticks_left: int = 0
     dash_cd_ticks: int = 0
@@ -125,6 +138,10 @@ class Player:
     launch_vx: float = 0.0
     launch_vz: float = 0.0
     launched: bool = False
+
+    @property
+    def capacity(self) -> int:
+        return min(TUNING.capacity_max, TUNING.carry_capacity + 2 * self.successful_lights)
 
     @property
     def pos(self) -> list[float]:
@@ -143,6 +160,13 @@ class Lantern:
     z: float
     deposited: int = 0
     lit: bool = False
+    fuel_sixtieths: int = 0
+    ever_lit: bool = False
+    relit_count: int = 0
+
+    @property
+    def fuel(self) -> float:
+        return 0.0 if not self.lit else _round1(self.fuel_sixtieths / 60.0)
 
     def to_snapshot(self) -> dict[str, Any]:
         return {
@@ -150,6 +174,9 @@ class Lantern:
             "pos": [_round3(self.x), _round3(self.y), _round3(self.z)],
             "lit": self.lit,
             "deposited": self.deposited,
+            "fuel": self.fuel,
+            "ever_lit": self.ever_lit,
+            "relit_count": self.relit_count,
         }
 
 
@@ -159,7 +186,7 @@ class Mote:
     x: float
     y: float
     z: float
-    kind: str = "random"  # "random" | "dropped"
+    kind: str = "random"
     ttl_ticks: int | None = None
     spawn_tick: int = 0
 
@@ -180,6 +207,8 @@ class Shade:
     z: float
     state: str = "chase"
     state_ticks_left: int = 0
+    target_lantern_id: str | None = None
+    drain_ticks: int = 0
     push_ticks_left: int = 0
     push_vx: float = 0.0
     push_vz: float = 0.0
@@ -299,7 +328,7 @@ def parse_inputs_frames(payload: Any) -> dict[int, dict[str, Any]]:
 
 @dataclass
 class GameEngine:
-    """Deterministic simulation engine for Nights 1-3 (Contract v1.1)."""
+    """Deterministic simulation engine for Nights 1-3 (Ticket-03 / Contract v1.2)."""
 
     seed: int = 42
     night: int = 1
@@ -445,16 +474,19 @@ class GameEngine:
         self.motes.append(mote)
         return mote
 
+    def _safe_lanterns(self) -> list[Lantern]:
+        return [l for l in self.lanterns if l.lit and l.fuel_sixtieths >= FUEL_LOW_SIXTIES]
+
     def _spawn_one_shade(self, current_sim_tick: int) -> Shade | None:
         _, max_shades = night_shade_schedule(self.night)
         if len(self.shades) >= max_shades:
             return None
-        lit_lanterns = [l for l in self.lanterns if l.lit]
+        safe_lanterns = self._safe_lanterns()
         valid: list[tuple[float, float, float]] = []
         for sx, sy, sz in night_shade_spawn_points(self.night):
             if math.hypot(sx - self.player.x, sz - self.player.z) < 15.0:
                 continue
-            if any(math.hypot(sx - l.x, sz - l.z) <= self.tuning.safe_radius for l in lit_lanterns):
+            if any(math.hypot(sx - l.x, sz - l.z) <= self.tuning.safe_radius for l in safe_lanterns):
                 continue
             valid.append((sx, sy, sz))
         if not valid:
@@ -544,6 +576,11 @@ class GameEngine:
                 if not _is_int(p_obj["flames"]) or p_obj["flames"] < 0:
                     raise ContractValidationError(f"Invalid player.flames: {p_obj['flames']!r}")
                 self.player.flames = int(p_obj["flames"])
+            if "successful_lights" in p_obj:
+                sl = p_obj["successful_lights"]
+                if not _is_int(sl) or sl < 0:
+                    raise ContractValidationError(f"Invalid player.successful_lights: {sl!r}")
+                self.player.successful_lights = int(sl)
             for tick_key, attr in (
                 ("invuln_ticks", "invuln_ticks"),
                 ("dash_cd_ticks", "dash_cd_ticks"),
@@ -571,6 +608,10 @@ class GameEngine:
                 if "pos" in item:
                     lx, ly, lz = _validate_pos3(item["pos"], f"lantern[{lid}].pos")
                     target.x, target.y, target.z = lx, ly, lz
+                if "ever_lit" in item:
+                    if not isinstance(item["ever_lit"], bool):
+                        raise ContractValidationError(f"Invalid lantern[{lid}].ever_lit: {item['ever_lit']!r}")
+                    target.ever_lit = item["ever_lit"]
                 if "deposited" in item:
                     dep = item["deposited"]
                     if not _is_int(dep) or dep < 0:
@@ -580,10 +621,26 @@ class GameEngine:
                     if not isinstance(item["lit"], bool):
                         raise ContractValidationError(f"Invalid lantern[{lid}].lit: {item['lit']!r}")
                     target.lit = item["lit"]
-                    if target.lit and "deposited" not in item and target.deposited < self.tuning.lantern_cost:
-                        target.deposited = self.tuning.lantern_cost
-                elif "deposited" in item:
-                    target.lit = target.deposited >= self.tuning.lantern_cost
+                    if target.lit:
+                        target.ever_lit = True
+                        if "fuel" in item:
+                            if not _is_num(item["fuel"]) or float(item["fuel"]) < 0.0:
+                                raise ContractValidationError(f"Invalid lantern[{lid}].fuel: {item['fuel']!r}")
+                            target.fuel_sixtieths = min(FUEL_MAX_SIXTIES, int(round(float(item["fuel"]) * 60.0)))
+                        else:
+                            target.fuel_sixtieths = FUEL_MAX_SIXTIES
+                        cost = self.tuning.relight_cost if target.ever_lit and "deposited" not in item else self.tuning.lantern_cost
+                        if "deposited" not in item and target.deposited < cost:
+                            target.deposited = self.tuning.lantern_cost
+                    else:
+                        target.fuel_sixtieths = 0
+                elif "fuel" in item:
+                    if not _is_num(item["fuel"]) or float(item["fuel"]) < 0.0:
+                        raise ContractValidationError(f"Invalid lantern[{lid}].fuel: {item['fuel']!r}")
+                    target.fuel_sixtieths = min(FUEL_MAX_SIXTIES, int(round(float(item["fuel"]) * 60.0)))
+                    if target.fuel_sixtieths > 0:
+                        target.lit = True
+                        target.ever_lit = True
 
         if "motes" in scenario:
             m_list = scenario["motes"]
@@ -620,6 +677,7 @@ class GameEngine:
                     sid = f"S{self._next_shade_seq}"
                     s_state = "chase"
                     state_ticks = 0
+                    target_lid = None
                 elif isinstance(item, dict) and "pos" in item:
                     sx, sy, sz = _validate_pos3(item["pos"], f"shades[{idx}].pos")
                     sid = str(item.get("id", f"S{self._next_shade_seq}"))
@@ -627,6 +685,7 @@ class GameEngine:
                     if s_state not in VALID_SHADE_STATES:
                         raise ContractValidationError(f"Invalid shade state: {s_state!r}")
                     state_ticks = int(item.get("state_ticks_left", PULSE_STUN_TICKS if s_state == "stunned" else 0))
+                    target_lid = item.get("target_lantern_id")
                 else:
                     raise ContractValidationError(f"Invalid shade entry #{idx}: {item!r}")
                 if not sid or sid in used_ids:
@@ -637,7 +696,15 @@ class GameEngine:
                 else:
                     self._next_shade_seq += 1
                 self.shades.append(
-                    Shade(id=sid, x=sx, y=sy, z=sz, state=s_state, state_ticks_left=state_ticks)
+                    Shade(
+                        id=sid,
+                        x=sx,
+                        y=sy,
+                        z=sz,
+                        state=s_state,
+                        state_ticks_left=state_ticks,
+                        target_lantern_id=target_lid,
+                    )
                 )
 
         if "drifters" in scenario:
@@ -687,15 +754,31 @@ class GameEngine:
     def _shade_speed(self) -> float:
         return SHADE_NIGHT3_SPEED if self.night == 3 else self.tuning.shade_speed
 
+    def _push_shades_from_lantern(self, lantern: Lantern) -> None:
+        for shade in self.shades:
+            dx = shade.x - lantern.x
+            dz = shade.z - lantern.z
+            dist = math.hypot(dx, dz)
+            if dist < self.tuning.safe_radius:
+                ux, uz = (dx / dist, dz / dist) if dist > 1e-9 else (1.0, 0.0)
+                rem = (self.tuning.safe_radius + 0.05) - dist
+                shade.safe_push_ticks_left = SAFE_PUSH_TICKS
+                shade.safe_push_vx = (ux * rem) / (SAFE_PUSH_TICKS * self.dt)
+                shade.safe_push_vz = (uz * rem) / (SAFE_PUSH_TICKS * self.dt)
+                if shade.state == "drain" and shade.target_lantern_id == lantern.id:
+                    shade.state = "wander"
+                    shade.target_lantern_id = None
+                    shade.drain_ticks = 0
+
     def step(self, action: StepInput) -> list[dict[str, Any]]:
-        """Execute one tick following the mandatory 12-step Ticket-02 order."""
+        """Execute one tick following Ticket-02/03 12-step order."""
         if self.state in ("won", "lost"):
             return []
 
         events: list[dict[str, Any]] = []
         self.tick += 1
 
-        # Step 1: Read input (handle pause first)
+        # Step 1: Read input (pause first)
         pause_edge = (not self._prev_pause) and bool(action.pause)
         jump_edge = (not self._prev_jump) and bool(action.jump)
         interact_edge = (not self._prev_interact) and bool(action.interact)
@@ -721,7 +804,6 @@ class GameEngine:
         if self.state == "paused":
             return events
 
-        # Active gameplay tick
         self.sim_tick += 1
         if not self._night_started_emitted:
             self._night_started_emitted = True
@@ -729,7 +811,7 @@ class GameEngine:
                 {"type": "event", "tick": self.tick, "name": "night_start", "data": {"night": self.night}}
             )
 
-        # Step 2: Decrement timers (time, cooldowns, invuln, stun, charm, dropped TTL, charm respawn)
+        # Step 2: Decrement timers + lantern fuel decay & shade drain
         self.time_left_s = max(0.0, self.initial_time_left_s - (self.sim_tick / 60.0))
 
         if self.player.invuln_ticks > 0:
@@ -743,7 +825,6 @@ class GameEngine:
         if self.player.dash_ticks_left > 0:
             self.player.dash_ticks_left -= 1
 
-        # Night 3 wind schedule
         if self.wind_enabled:
             if self.wind_active:
                 self.wind_ticks_left -= 1
@@ -758,7 +839,13 @@ class GameEngine:
                     self.wind_ticks_left = WIND_DURATION_TICKS
                     self.wind_dir_deg = round(self._rng.uniform(0.0, 360.0), 1)
 
-        # Shade timers
+        # Lantern natural decay (1/60 per tick)
+        lantern_by_id = {l.id: l for l in self.lanterns}
+        for lantern in self.lanterns:
+            if lantern.lit:
+                lantern.fuel_sixtieths -= FUEL_DECAY_SIXTIES_PER_TICK
+
+        # Shade timers & fuel drain (5/60 per tick)
         for shade in self.shades:
             if shade.push_ticks_left > 0:
                 shade.push_ticks_left -= 1
@@ -767,17 +854,51 @@ class GameEngine:
             if shade.state_ticks_left > 0:
                 shade.state_ticks_left -= 1
                 if shade.state_ticks_left == 0 and shade.state in ("stunned", "recoil", "spawning"):
-                    dist = math.hypot(shade.x - self.player.x, shade.z - self.player.z)
-                    shade.state = "chase" if dist <= SHADE_DETECT_RADIUS else "wander"
+                    # Ticket-03: after stun expires, return to wander
+                    shade.state = "wander"
+                    shade.target_lantern_id = None
+                    shade.drain_ticks = 0
+            if shade.state == "drain" and shade.target_lantern_id:
+                t_lantern = lantern_by_id.get(shade.target_lantern_id)
+                if t_lantern is not None and t_lantern.lit:
+                    t_lantern.fuel_sixtieths -= FUEL_DRAIN_SIXTIES_PER_TICK
+                    shade.drain_ticks += 1
+                    if shade.drain_ticks % 60 == 0 and t_lantern.fuel_sixtieths > 0:
+                        events.append(
+                            {
+                                "type": "event",
+                                "tick": self.tick,
+                                "name": "fuel_drain",
+                                "data": {
+                                    "lantern_id": t_lantern.id,
+                                    "shade_id": shade.id,
+                                    "fuel": _round1(t_lantern.fuel_sixtieths / 60.0),
+                                },
+                            }
+                        )
 
-        # Drifter flee timers
+        # Immediately after Step 2: any lit lantern with fuel <= 0 turns off
+        for lantern in self.lanterns:
+            if lantern.lit and lantern.fuel_sixtieths <= 0:
+                lantern.lit = False
+                lantern.fuel_sixtieths = 0
+                lantern.deposited = 0
+                lantern.ever_lit = True
+                events.append(
+                    {
+                        "type": "event",
+                        "tick": self.tick,
+                        "name": "lantern_out",
+                        "data": {"lantern_id": lantern.id},
+                    }
+                )
+
         for drifter in self.drifters:
             if drifter.state == "flee" and drifter.flee_ticks_left > 0:
                 drifter.flee_ticks_left -= 1
                 if drifter.flee_ticks_left == 0:
                     drifter.state = "removed"
 
-        # Dropped mote TTL
         if self.motes:
             kept_motes: list[Mote] = []
             for mote in self.motes:
@@ -788,14 +909,13 @@ class GameEngine:
                 kept_motes.append(mote)
             self.motes = kept_motes
 
-        # Charm respawn
         for charm in self.charms:
             if not charm.available and charm.respawn_ticks > 0:
                 charm.respawn_ticks -= 1
                 if charm.respawn_ticks == 0:
                     charm.available = True
 
-        # Step 3: Move Mây (respawn wait, dash, jump, jump pad, wind, gravity, fall check)
+        # Step 3: Move Mây
         if self.player.respawn_ticks_left > 0:
             self.player.respawn_ticks_left -= 1
             self.player.vx = 0.0
@@ -822,7 +942,6 @@ class GameEngine:
             if mag > 1e-9:
                 self.player.yaw = math.atan2(wx, wz)
 
-            # Dash trigger (ignored while already dashing; charm removes cooldown)
             has_charm = self.player.charm_ticks > 0
             if dash_edge and self.player.dash_ticks_left == 0 and (has_charm or self.player.dash_cd_ticks == 0):
                 self.player.dash_ticks_left = DASH_DURATION_TICKS
@@ -865,7 +984,6 @@ class GameEngine:
             self.player.vz = (new_z - old_z) / self.dt
 
             if self.player.dash_ticks_left > 0:
-                # Dash in air keeps Y constant
                 self.player.vy = 0.0
             else:
                 self.player.y += self.player.vy * self.dt
@@ -879,7 +997,6 @@ class GameEngine:
                 else:
                     self.player.grounded = False
 
-            # Jump pads
             for pad in night_jump_pads(self.night):
                 if (
                     math.hypot(self.player.x - pad.x, self.player.z - pad.z) <= pad.radius + 1e-9
@@ -893,7 +1010,6 @@ class GameEngine:
                     self.player.grounded = False
                     break
 
-            # Fall off island (Y < -10)
             if self.tuning.fall_enabled and self.player.y < -10.0:
                 self.player.flames = max(0, self.player.flames - 1)
                 lost = self.player.carried
@@ -919,14 +1035,15 @@ class GameEngine:
                 if self.player.flames > 0:
                     self.player.respawn_ticks_left = RESPAWN_WAIT_TICKS
 
-        # Step 4: Pickup motes and charms (not while respawning)
+        # Step 4: Pickup motes and charms
         if self.player.respawn_ticks_left == 0:
-            if self.player.carried < self.tuning.carry_capacity and self.motes:
+            cap = self.player.capacity
+            if self.player.carried < cap and self.motes:
                 rem_motes: list[Mote] = []
                 for mote in self.motes:
                     if (
                         mote.spawn_tick < self.sim_tick
-                        and self.player.carried < self.tuning.carry_capacity
+                        and self.player.carried < cap
                         and math.hypot(self.player.x - mote.x, self.player.z - mote.z)
                         <= self.tuning.pickup_radius + 1e-9
                         and abs(self.player.y - mote.y) <= 1.5 + 1e-9
@@ -965,13 +1082,13 @@ class GameEngine:
                         }
                     )
 
-        # Step 5: Interact with nearest unlit lantern (tie-break lowest id)
-        newly_lit_lanterns: list[Lantern] = []
+        # Step 5: Interact with lantern (light, relight, or refuel; skip full fuel==100)
+        newly_protected_lanterns: list[Lantern] = []
         if interact_edge and self.player.carried > 0 and self.player.respawn_ticks_left == 0:
             best_lantern: Lantern | None = None
             best_key: tuple[float, str] | None = None
             for lantern in self.lanterns:
-                if lantern.lit:
+                if lantern.lit and lantern.fuel_sixtieths >= FUEL_MAX_SIXTIES:
                     continue
                 dist = math.hypot(self.player.x - lantern.x, self.player.z - lantern.z)
                 if dist <= self.tuning.interact_radius + 1e-9:
@@ -981,51 +1098,78 @@ class GameEngine:
                         best_lantern = lantern
 
             if best_lantern is not None:
-                needed = max(0, self.tuning.lantern_cost - best_lantern.deposited)
-                amount = min(self.player.carried, needed)
-                if amount > 0:
-                    self.player.carried -= amount
-                    best_lantern.deposited += amount
-                    self.score += amount * self.tuning.score.per_mote_deposit
-                    events.append(
-                        {
-                            "type": "event",
-                            "tick": self.tick,
-                            "name": "deposit",
-                            "data": {
-                                "lantern_id": best_lantern.id,
-                                "amount": amount,
-                                "deposited": best_lantern.deposited,
-                            },
-                        }
-                    )
-                    if best_lantern.deposited >= self.tuning.lantern_cost and not best_lantern.lit:
-                        best_lantern.lit = True
-                        newly_lit_lanterns.append(best_lantern)
-                        self.score += self.tuning.score.per_lantern
+                if not best_lantern.lit:
+                    cost = self.tuning.relight_cost if best_lantern.ever_lit else self.tuning.lantern_cost
+                    needed = max(0, cost - best_lantern.deposited)
+                    amount = min(self.player.carried, needed)
+                    if amount > 0:
+                        self.player.carried -= amount
+                        best_lantern.deposited += amount
+                        self.score += amount * self.tuning.score.per_mote_deposit
                         events.append(
                             {
                                 "type": "event",
                                 "tick": self.tick,
-                                "name": "lantern_lit",
-                                "data": {"lantern_id": best_lantern.id},
+                                "name": "deposit",
+                                "data": {
+                                    "lantern_id": best_lantern.id,
+                                    "amount": amount,
+                                    "deposited": best_lantern.deposited,
+                                },
                             }
                         )
+                        if best_lantern.deposited >= cost:
+                            is_relight = best_lantern.ever_lit
+                            best_lantern.lit = True
+                            best_lantern.ever_lit = True
+                            best_lantern.fuel_sixtieths = FUEL_MAX_SIXTIES
+                            if is_relight:
+                                best_lantern.relit_count += 1
+                                self.score += self.tuning.score.per_relight
+                            else:
+                                self.score += self.tuning.score.per_lantern
+                            self.player.successful_lights += 1
+                            newly_protected_lanterns.append(best_lantern)
+                            events.append(
+                                {
+                                    "type": "event",
+                                    "tick": self.tick,
+                                    "name": "lantern_lit",
+                                    "data": {"lantern_id": best_lantern.id, "relight": is_relight},
+                                }
+                            )
+                else:
+                    # Refuel lit lantern (ceil((100 - fuel) / 10))
+                    deficit = FUEL_MAX_SIXTIES - best_lantern.fuel_sixtieths
+                    needed_motes = (deficit + FUEL_PER_MOTE_SIXTIES - 1) // FUEL_PER_MOTE_SIXTIES
+                    used = min(self.player.carried, needed_motes)
+                    if used > 0:
+                        was_low = best_lantern.fuel_sixtieths < FUEL_LOW_SIXTIES
+                        self.player.carried -= used
+                        best_lantern.fuel_sixtieths = min(
+                            FUEL_MAX_SIXTIES, best_lantern.fuel_sixtieths + used * FUEL_PER_MOTE_SIXTIES
+                        )
+                        self.score += used * self.tuning.score.per_mote_deposit
+                        events.append(
+                            {
+                                "type": "event",
+                                "tick": self.tick,
+                                "name": "refuel",
+                                "data": {
+                                    "lantern_id": best_lantern.id,
+                                    "amount": used,
+                                    "fuel": best_lantern.fuel,
+                                },
+                            }
+                        )
+                        if was_low and best_lantern.fuel_sixtieths >= FUEL_LOW_SIXTIES:
+                            newly_protected_lanterns.append(best_lantern)
 
-        # Step 6: Update safe zones (push out shades caught inside newly lit lantern)
-        for lantern in newly_lit_lanterns:
-            for shade in self.shades:
-                dx = shade.x - lantern.x
-                dz = shade.z - lantern.z
-                dist = math.hypot(dx, dz)
-                if dist < self.tuning.safe_radius:
-                    ux, uz = (dx / dist, dz / dist) if dist > 1e-9 else (1.0, 0.0)
-                    rem = (self.tuning.safe_radius + 0.05) - dist
-                    shade.safe_push_ticks_left = SAFE_PUSH_TICKS
-                    shade.safe_push_vx = (ux * rem) / (SAFE_PUSH_TICKS * self.dt)
-                    shade.safe_push_vz = (uz * rem) / (SAFE_PUSH_TICKS * self.dt)
+        # Step 6: Safe zones (push out shades when lit or refueled >= 30)
+        for lantern in newly_protected_lanterns:
+            self._push_shades_from_lantern(lantern)
 
-        # Step 7: Pulse (Tỏa Sáng) — 3D distance <= 5.0m from (player.pos + [0, 0.8, 0])
+        # Step 7: Pulse (Tỏa Sáng)
         if (
             pulse_edge
             and self.player.respawn_ticks_left == 0
@@ -1043,9 +1187,12 @@ class GameEngine:
                     continue
                 dist3d = math.sqrt((shade.x - px0) ** 2 + (shade.y - py0) ** 2 + (shade.z - pz0) ** 2)
                 if dist3d <= self.tuning.pulse_radius + 1e-9:
+                    was_draining = shade.state == "drain"
                     stunned_ids.append(shade.id)
                     shade.state = "stunned"
                     shade.state_ticks_left = PULSE_STUN_TICKS
+                    shade.target_lantern_id = None
+                    shade.drain_ticks = 0
                     dx = shade.x - px0
                     dz = shade.z - pz0
                     hdist = math.hypot(dx, dz)
@@ -1053,8 +1200,10 @@ class GameEngine:
                     shade.push_ticks_left = PULSE_PUSH_TICKS
                     shade.push_vx = (ux * self.tuning.pulse_push_m) / (PULSE_PUSH_TICKS * self.dt)
                     shade.push_vz = (uz * self.tuning.pulse_push_m) / (PULSE_PUSH_TICKS * self.dt)
+                    self.score += (
+                        self.tuning.score.per_drain_stun if was_draining else self.tuning.score.per_stun
+                    )
 
-            self.score += self.tuning.score.per_stun * len(stunned_ids)
             events.append(
                 {
                     "type": "event",
@@ -1064,7 +1213,6 @@ class GameEngine:
                 }
             )
 
-            # Pulse hits Drifters too (3D dist <= 5.0m)
             for drifter in self.drifters:
                 if drifter.state == "removed" or drifter.spawn_tick >= self.sim_tick:
                     continue
@@ -1106,15 +1254,19 @@ class GameEngine:
                             }
                         )
 
-        # Step 8: Move Shades & Drifters
-        lit_lanterns = [l for l in self.lanterns if l.lit]
+        # Step 8: Move Shades (including drain) & Drifters
+        safe_lanterns = self._safe_lanterns()
+        weak_lanterns = [l for l in self.lanterns if l.lit and l.fuel_sixtieths < FUEL_LOW_SIXTIES]
+        unlit_lanterns = [l for l in self.lanterns if not l.lit]
         sh_speed = self._shade_speed()
+
         for shade in self.shades:
             if shade.spawn_tick >= self.sim_tick or shade.state == "spawning":
                 continue
 
             old_sx, old_sz = shade.x, shade.z
             nx, nz = old_sx, old_sz
+            dist_p = math.hypot(self.player.x - old_sx, self.player.z - old_sz)
 
             if shade.safe_push_ticks_left > 0:
                 nx = old_sx + shade.safe_push_vx * self.dt
@@ -1130,11 +1282,26 @@ class GameEngine:
             elif shade.state == "recoil":
                 nx = old_sx + shade.recoil_vx * self.dt
                 nz = old_sz + shade.recoil_vz * self.dt
+            elif shade.state == "drain":
+                t_lantern = lantern_by_id.get(shade.target_lantern_id or "")
+                if dist_p <= SHADE_DRAIN_CHASE_RADIUS + 1e-9:
+                    shade.state = "chase"
+                    shade.target_lantern_id = None
+                    shade.drain_ticks = 0
+                elif (
+                    t_lantern is None
+                    or not t_lantern.lit
+                    or t_lantern.fuel_sixtieths >= FUEL_LOW_SIXTIES
+                    or math.hypot(old_sx - t_lantern.x, old_sz - t_lantern.z) > SHADE_DRAIN_RADIUS + 1e-9
+                ):
+                    shade.state = "wander"
+                    shade.target_lantern_id = None
+                    shade.drain_ticks = 0
+                # While in drain, shade stands still
             else:
-                # wander / chase state transitions
-                dist_p = math.hypot(self.player.x - old_sx, self.player.z - old_sz)
                 if shade.state == "wander" and dist_p <= SHADE_DETECT_RADIUS:
                     shade.state = "chase"
+                    shade.target_lantern_id = None
                 elif shade.state == "chase" and dist_p > SHADE_LOSE_RADIUS:
                     shade.state = "wander"
 
@@ -1144,13 +1311,40 @@ class GameEngine:
                         nx = old_sx + ((self.player.x - old_sx) / dist_p) * step_d
                         nz = old_sz + ((self.player.z - old_sz) / dist_p) * step_d
                 else:
-                    shade.wander_angle += 0.02
-                    nx = old_sx + math.cos(shade.wander_angle) * (sh_speed * 0.45) * self.dt
-                    nz = old_sz + math.sin(shade.wander_angle) * (sh_speed * 0.45) * self.dt
+                    # wander: nearest weak lit lantern (fuel < 30), else nearest unlit lantern
+                    target_l: Lantern | None = None
+                    is_weak = False
+                    if weak_lanterns:
+                        target_l = min(
+                            weak_lanterns,
+                            key=lambda l: (round(math.hypot(old_sx - l.x, old_sz - l.z), 9), l.id),
+                        )
+                        is_weak = True
+                    elif unlit_lanterns:
+                        target_l = min(
+                            unlit_lanterns,
+                            key=lambda l: (round(math.hypot(old_sx - l.x, old_sz - l.z), 9), l.id),
+                        )
 
-            # Lit lantern safe_radius blocks outside shades
+                    if target_l is not None:
+                        tdx = target_l.x - old_sx
+                        tdz = target_l.z - old_sz
+                        tdist = math.hypot(tdx, tdz)
+                        if is_weak and tdist <= SHADE_DRAIN_RADIUS + 1e-9:
+                            shade.state = "drain"
+                            shade.target_lantern_id = target_l.id
+                            shade.drain_ticks = 0
+                        elif tdist > 1e-9:
+                            step_d = min(tdist, sh_speed * self.dt)
+                            nx = old_sx + (tdx / tdist) * step_d
+                            nz = old_sz + (tdz / tdist) * step_d
+                    else:
+                        shade.wander_angle += 0.02
+                        nx = old_sx + math.cos(shade.wander_angle) * (sh_speed * 0.45) * self.dt
+                        nz = old_sz + math.sin(shade.wander_angle) * (sh_speed * 0.45) * self.dt
+
             if shade.safe_push_ticks_left == 0:
-                for lantern in lit_lanterns:
+                for lantern in safe_lanterns:
                     ldx = nx - lantern.x
                     ldz = nz - lantern.z
                     ldist = math.hypot(ldx, ldz)
@@ -1161,7 +1355,6 @@ class GameEngine:
 
             shade.x, shade.z = resolve_obstacle_xz(self.night, old_sx, old_sz, nx, nz, shade.y)
 
-        # Drifter movement
         for drifter in self.drifters:
             if drifter.state == "removed" or drifter.spawn_tick >= self.sim_tick:
                 continue
@@ -1190,7 +1383,7 @@ class GameEngine:
                 drifter.x += ux * DRIFTER_FAST_SPEED * self.dt
                 drifter.z += uz * DRIFTER_FAST_SPEED * self.dt
 
-        # Step 9: Collisions — Drifters steal first, then Shades hit (ascending id)
+        # Step 9: Collisions — Drifters steal first, then Shades hit
         if self.player.respawn_ticks_left == 0:
             for drifter in sorted(self.drifters, key=lambda d: d.id):
                 if drifter.spawn_tick >= self.sim_tick or drifter.has_stolen or drifter.state in ("flee", "removed"):
@@ -1219,7 +1412,7 @@ class GameEngine:
                 for shade in sorted(self.shades, key=lambda s: s.id):
                     if shade.spawn_tick >= self.sim_tick:
                         continue
-                    if shade.state in ("spawning", "stunned", "recoil") or shade.safe_push_ticks_left > 0:
+                    if shade.state in ("spawning", "stunned", "recoil", "drain") or shade.safe_push_ticks_left > 0:
                         continue
                     xz_dist = math.hypot(shade.x - self.player.x, shade.z - self.player.z)
                     dy = abs(shade.y - self.player.y)
@@ -1229,7 +1422,6 @@ class GameEngine:
                         self.player.carried = max(0, self.player.carried - dropped)
                         self.player.invuln_ticks = INVULN_TICKS
 
-                        # Spawn dropped motes on 1.5-2.5m ring
                         for _ in range(dropped):
                             ang = self._rng.uniform(0.0, 2.0 * math.pi)
                             rad = self._rng.uniform(1.5, 2.5)
@@ -1250,7 +1442,6 @@ class GameEngine:
                             )
                             self._next_mote_seq += 1
 
-                        # Shade recoil 2m over 60 ticks
                         dx = shade.x - self.player.x
                         dz = shade.z - self.player.z
                         d = math.hypot(dx, dz)
@@ -1274,7 +1465,7 @@ class GameEngine:
                         )
                         break
 
-        # Step 10: Scheduled spawns (only active from next tick via spawn_tick)
+        # Step 10: Scheduled spawns
         if self.random_motes and self.sim_tick % MOTE_SPAWN_INTERVAL_TICKS == 0:
             self._spawn_one_random_mote(self.sim_tick)
 
@@ -1285,23 +1476,13 @@ class GameEngine:
                     s = self._spawn_one_shade(self.sim_tick)
                     if s is not None:
                         events.append(
-                            {
-                                "type": "event",
-                                "tick": self.tick,
-                                "name": "shade_spawned",
-                                "data": {"id": s.id},
-                            }
+                            {"type": "event", "tick": self.tick, "name": "shade_spawned", "data": {"id": s.id}}
                         )
             elif (self.sim_tick - SHADE_FIRST_SPAWN_TICK) % interval == 0:
                 s = self._spawn_one_shade(self.sim_tick)
                 if s is not None:
                     events.append(
-                        {
-                            "type": "event",
-                            "tick": self.tick,
-                            "name": "shade_spawned",
-                            "data": {"id": s.id},
-                        }
+                        {"type": "event", "tick": self.tick, "name": "shade_spawned", "data": {"id": s.id}}
                     )
 
         if (
@@ -1311,7 +1492,7 @@ class GameEngine:
         ):
             self._spawn_one_drifter(self.sim_tick)
 
-        # Step 11: Win / Loss check (no_flames -> all_lit -> dawn)
+        # Step 11: Win / Loss check (no_flames first -> dawn_survived vs dawn)
         if self.player.flames <= 0:
             self.state = "lost"
             self.game_over_reason = "no_flames"
@@ -1323,36 +1504,42 @@ class GameEngine:
                     "data": {"result": "lost", "reason": "no_flames"},
                 }
             )
-        elif self.lanterns and all(l.lit for l in self.lanterns):
-            self.state = "won"
-            self.game_over_reason = "all_lit"
-            time_bonus = int(math.floor(self.time_left_s)) * self.tuning.score.per_second_left
-            flame_bonus = self.player.flames * self.tuning.score.per_flame_left
-            self.score += time_bonus + flame_bonus
-            events.append(
-                {
-                    "type": "event",
-                    "tick": self.tick,
-                    "name": "game_over",
-                    "data": {"result": "won", "reason": "all_lit"},
-                }
-            )
         elif self.time_left_s <= 1e-9:
-            self.state = "lost"
-            self.game_over_reason = "dawn"
-            events.append(
-                {
-                    "type": "event",
-                    "tick": self.tick,
-                    "name": "game_over",
-                    "data": {"result": "lost", "reason": "dawn"},
-                }
-            )
+            lit_lanterns = [l for l in self.lanterns if l.lit]
+            needed_lit = math.ceil(self.tuning.win_ratio * len(self.lanterns))
+            if len(lit_lanterns) >= needed_lit:
+                self.state = "won"
+                self.game_over_reason = "dawn_survived"
+                dawn_lantern_bonus = sum(
+                    self.tuning.score.dawn_lantern_base + int(math.floor(l.fuel_sixtieths / 60.0))
+                    for l in lit_lanterns
+                )
+                flame_bonus = self.player.flames * self.tuning.score.per_flame_left
+                self.score += dawn_lantern_bonus + flame_bonus
+                events.append(
+                    {
+                        "type": "event",
+                        "tick": self.tick,
+                        "name": "game_over",
+                        "data": {"result": "won", "reason": "dawn_survived"},
+                    }
+                )
+            else:
+                self.state = "lost"
+                self.game_over_reason = "dawn"
+                events.append(
+                    {
+                        "type": "event",
+                        "tick": self.tick,
+                        "name": "game_over",
+                        "data": {"result": "lost", "reason": "dawn"},
+                    }
+                )
 
         return events
 
     def snapshot(self) -> dict[str, Any]:
-        """Return Test Contract v1.1 snapshot dictionary."""
+        """Return Test Contract v1.2 snapshot dictionary."""
         return {
             "type": "snapshot",
             "tick": self.tick,
@@ -1371,6 +1558,7 @@ class GameEngine:
                 "grounded": self.player.grounded,
                 "flames": self.player.flames,
                 "carried": self.player.carried,
+                "capacity": self.player.capacity,
                 "invuln": self.player.invuln_ticks > 0,
                 "dash_cd_s": _round3(self.player.dash_cd_ticks * FIXED_DT),
                 "pulse_cd_s": _round3(self.player.pulse_cd_ticks * FIXED_DT),

@@ -133,3 +133,30 @@
    - Input: `dash` (`bool`, edge `false->true`), `pause` (`bool`, edge `false->true`).
 3. **New Event types:**
    - `dash {}`, `charm_picked {"charm_id": str, "charm_ticks": int}`, `drifter_steal {"drifter_id": str, "amount": int, "carried": int}`, `drifter_drop {"drifter_id": str, "amount": int}`, `night_start {"night": int}`, `paused {}`, `resumed {}`, `player_hit` with `lost` on fall.
+
+---
+
+<!-- [Phase 3] Upgraded to Test Contract v1.2 (Ticket-03) -->
+
+## Phase 3: Test Contract v1.2 Deltas & Owners
+
+### A. `game.contract.json` (`contract_version: "1.2"`)
+- Added tuning keys: `fuel_max: 100`, `fuel_decay_per_s: 1.0`, `fuel_per_mote: 10`, `relight_cost: 5`, `win_ratio: 0.6`, `drain_per_s: 5`, `low_fuel_threshold: 30`, `capacity_max: 20`.
+- Updated durations: `night1_duration_s: 240.0`, `night2_duration_s: 270.0`, `night3_duration_s: 300.0`.
+- Updated `score`: `per_stun: 5` (engine awards `+15` if shade was in `drain` before pulse), `+5` per mote deposited, `+100` first light, `+40` relight, dawn bonus `+50 + floor(fuel)` per lit lantern + `50 * flames` (no time bonus).
+
+### B. JSONL & Scenario v1.2 Deltas
+1. **Snapshot:**
+   - `lanterns[]`: adds `fuel` (1-decimal float; `0.0` if unlit), `ever_lit` (`bool`), `relit_count` (`int`).
+   - `player`: adds `capacity` (`int`, `10..20`).
+   - `shades[].state`: adds `"drain"`.
+2. **Scenario:**
+   - `lanterns[]`: supports `lit`, `fuel`, `ever_lit` (`lit: true` without `fuel` defaults `fuel: 100`).
+   - `player`: supports `successful_lights` (`int`).
+   - `shades[]`: supports `target_lantern_id` (`str | null`).
+3. **Events:**
+   - `refuel`: `{"lantern_id": str, "amount": int, "fuel": float}`
+   - `lantern_out`: `{"lantern_id": str}`
+   - `fuel_drain`: `{"lantern_id": str, "shade_id": str, "fuel": float}` (emitted every `60` ticks while draining)
+   - `lantern_lit`: `{"lantern_id": str, "relight": bool}`
+   - `game_over.reason`: `"dawn_survived"` | `"dawn"` | `"no_flames"` (`"all_lit"` removed).

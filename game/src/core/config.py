@@ -1,4 +1,4 @@
-"""Standardized Ticket-02 / Test Contract v1.1 tuning constants."""
+"""Standardized Ticket-03 / Test Contract v1.2 tuning constants."""
 
 from __future__ import annotations
 
@@ -20,6 +20,14 @@ RESPAWN_WAIT_TICKS: int = 60        # 1.0s * 60
 SAFE_PUSH_TICKS: int = 30
 RECOIL_TICKS: int = 60
 RECOIL_DIST_M: float = 2.0
+
+FUEL_MAX_SIXTIES: int = 6000        # 100 * 60
+FUEL_LOW_SIXTIES: int = 1800        # 30 * 60
+FUEL_PER_MOTE_SIXTIES: int = 600    # 10 * 60
+FUEL_DECAY_SIXTIES_PER_TICK: int = 1
+FUEL_DRAIN_SIXTIES_PER_TICK: int = 5
+SHADE_DRAIN_RADIUS: float = 2.0
+SHADE_DRAIN_CHASE_RADIUS: float = 6.0
 
 INITIAL_RANDOM_MOTES: int = 20
 MAX_ACTIVE_MOTES: int = 30
@@ -57,9 +65,12 @@ class ScoreConfig:
     per_mote: int = 0
     per_lantern: int = 100
     per_stun: int = 5
-    per_second_left: int = 2
+    per_second_left: int = 0
     per_flame_left: int = 50
-    per_mote_deposit: int = 10
+    per_mote_deposit: int = 5
+    per_relight: int = 40
+    per_drain_stun: int = 15
+    dawn_lantern_base: int = 50
 
     def to_dict(self) -> dict[str, int]:
         return {
@@ -78,15 +89,23 @@ class TuningConfig:
     dash_duration_s: float = 0.2
     dash_cooldown_s: float = 1.5
     carry_capacity: int = 10
+    capacity_max: int = 20
     lantern_cost: int = 10
+    relight_cost: int = 5
     lantern_count_night1: int = 5
+    fuel_max: int = 100
+    fuel_decay_per_s: float = 1.0
+    fuel_per_mote: int = 10
+    drain_per_s: int = 5
+    low_fuel_threshold: int = 30
+    win_ratio: float = 0.6
     pickup_radius: float = 1.0
     interact_radius: float = 2.0
     pulse_cost: int = 3
     pulse_radius: float = 5.0
-    night1_duration_s: float = 300.0
-    night2_duration_s: float = 330.0
-    night3_duration_s: float = 360.0
+    night1_duration_s: float = 240.0
+    night2_duration_s: float = 270.0
+    night3_duration_s: float = 300.0
     flames: int = 3
     invuln_s: float = 1.5
     hit_drop_ratio: float = 0.5
@@ -113,8 +132,16 @@ class TuningConfig:
             "dash_duration_s": self.dash_duration_s,
             "dash_cooldown_s": self.dash_cooldown_s,
             "carry_capacity": self.carry_capacity,
+            "capacity_max": self.capacity_max,
             "lantern_cost": self.lantern_cost,
+            "relight_cost": self.relight_cost,
             "lantern_count_night1": self.lantern_count_night1,
+            "fuel_max": self.fuel_max,
+            "fuel_decay_per_s": self.fuel_decay_per_s,
+            "fuel_per_mote": self.fuel_per_mote,
+            "drain_per_s": self.drain_per_s,
+            "low_fuel_threshold": self.low_fuel_threshold,
+            "win_ratio": self.win_ratio,
             "pickup_radius": self.pickup_radius,
             "interact_radius": self.interact_radius,
             "pulse_cost": self.pulse_cost,

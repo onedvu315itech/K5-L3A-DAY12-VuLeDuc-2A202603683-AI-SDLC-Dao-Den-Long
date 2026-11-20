@@ -24,12 +24,12 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 GAME_ROOT = Path(__file__).resolve().parent.parent
 
 
-class TestPhase2ContractAndFeatures(unittest.TestCase):
-    def test_contract_v11_json_matches_tuning(self) -> None:
+class TestPhase3ContractAndFeatures(unittest.TestCase):
+    def test_contract_v12_json_matches_tuning(self) -> None:
         contract_path = REPO_ROOT / "game.contract.json"
         self.assertTrue(contract_path.is_file(), "game.contract.json must exist at repo root")
         data = json.loads(contract_path.read_text(encoding="utf-8"))
-        self.assertEqual(data["contract_version"], "1.1")
+        self.assertEqual(data["contract_version"], "1.2")
         self.assertEqual(data["tuning"], TUNING.to_dict())
 
     def test_standardized_movement_jump_and_dash(self) -> None:
@@ -85,7 +85,8 @@ class TestPhase2ContractAndFeatures(unittest.TestCase):
         self.assertEqual(snap20["sim_tick"], 10)
         self.assertAlmostEqual(snap20["time_left_s"], 100.0 - 10 / 60.0, places=3)
 
-    def test_mote_deposit_lantern_and_win(self) -> None:
+    def test_no_early_win_and_dawn_survived(self) -> None:
+        """Updated from Phase 2: lighting all lanterns no longer wins early; must survive to dawn >= 60%."""
         scenario = {
             "player": {"pos": [0, 0, 0], "carried": 9, "flames": 3},
             "random_motes": False,
@@ -94,12 +95,12 @@ class TestPhase2ContractAndFeatures(unittest.TestCase):
             "shades": [],
             "lanterns": [
                 {"id": "L1", "pos": [0, 0, 8], "deposited": 0, "lit": False},
-                {"id": "L2", "lit": True},
-                {"id": "L3", "lit": True},
-                {"id": "L4", "lit": True},
-                {"id": "L5", "lit": True},
+                {"id": "L2", "lit": True, "fuel": 100},
+                {"id": "L3", "lit": True, "fuel": 100},
+                {"id": "L4", "lit": True, "fuel": 100},
+                {"id": "L5", "lit": True, "fuel": 100},
             ],
-            "time_left_s": 120.0,
+            "time_left_s": 5.0,
         }
         inputs = {
             "frames": [
@@ -109,14 +110,95 @@ class TestPhase2ContractAndFeatures(unittest.TestCase):
             ]
         }
         records = run_contract_simulation(
-            seed=42, night=1, ticks=120, snapshot_every=20, scenario=scenario, inputs=inputs
+            seed=42, night=1, ticks=400, snapshot_every=100, scenario=scenario, inputs=inputs
         )
         events = [r for r in records if r["type"] == "event"]
-        names = [e["name"] for e in events]
-        self.assertIn("mote_picked", names)
-        self.assertIn("deposit", names)
-        self.assertIn("lantern_lit", names)
+        lit_ev = [e for e in events if e["name"] == "lantern_lit"][0]
+        self.assertFalse(lit_ev["data"]["relight"])
+
+        # Did NOT end early at tick 66; ran until dawn at tick 300
+        self.assertEqual(records[-1]["ticks"], 300)
         self.assertEqual(records[-1]["state"], "won")
+        go_ev = [e for e in events if e["name"] == "game_over"][0]
+        self.assertEqual(go_ev["data"]["reason"], "dawn_survived")
+
+    def test_fuel_decay_refuel_lantern_out_and_relight(self) -> None:
+        scenario = {
+            "player": {"pos": [0, 0, 0], "carried": 10, "flames": 3},
+            "random_motes": False,
+            "random_shades": False,
+            "motes": [],
+            "shades": [],
+            "lanterns": [{"id": "L1", "pos": [0, 0, 0], "lit": True, "fuel": 2.0}],
+            "time_left_s": 10.0,
+        }
+        # Refuel at tick 1 (fuel ~1.98 -> needs ceil(98/10)=10 motes -> fuel=100),
+        # and verify second scenario for lantern_out + relight for 5 motes + capacity increase
+        inputs = {"frames": [{"tick": 0, "interact": True}, {"tick": 1, "interact": False}]}
+        recs = run_contract_simulation(
+            seed=1, night=1, ticks=5, snapshot_every=5, scenario=scenario, inputs=inputs
+        )
+        refuel_ev = [r for r in recs if r["type"] == "event" and r["name"] == "refuel"][0]
+        self.assertEqual(refuel_ev["data"]["amount"], 10)
+        self.assertEqual(refuel_ev["data"]["fuel"], 100.0)
+
+        # Lantern out + relight for 5 motes + capacity increases to 12
+        scenario2 = {
+            "player": {"pos": [0, 0, 0], "carried": 8, "flames": 3},
+            "random_motes": False,
+            "random_shades": False,
+            "motes": [],
+            "shades": [],
+            "lanterns": [{"id": "L1", "pos": [0, 0, 0], "lit": True, "fuel": 0.5}],
+            "time_left_s": 20.0,
+        }
+        inputs2 = {"frames": [{"tick": 40, "interact": True}, {"tick": 41, "interact": False}]}
+        recs2 = run_contract_simulation(
+            seed=1, night=1, ticks=60, snapshot_every=60, scenario=scenario2, inputs=inputs2
+        )
+        evs2 = [r for r in recs2 if r["type"] == "event"]
+        self.assertTrue(any(e["name"] == "lantern_out" for e in evs2))
+        relit_ev = [e for e in evs2 if e["name"] == "lantern_lit"][0]
+        self.assertTrue(relit_ev["data"]["relight"])
+        snap60 = [r for r in recs2 if r["type"] == "snapshot" and r["tick"] == 60][0]
+        self.assertEqual(snap60["player"]["capacity"], 12)
+        self.assertEqual(snap60["lanterns"][0]["relit_count"], 1)
+
+    def test_shade_drain_and_drain_pulse_bonus(self) -> None:
+        scenario = {
+            "player": {"pos": [20, 0, 0], "carried": 5, "flames": 3},
+            "random_motes": False,
+            "random_shades": False,
+            "motes": [],
+            "shades": [{"id": "S1", "pos": [0.5, 1.0, 0.0], "state": "wander"}],
+            "lanterns": [{"id": "L1", "pos": [0, 0, 0], "lit": True, "fuel": 20.0}],
+            "time_left_s": 30.0,
+        }
+        # Let shade drain for 65 ticks (emits fuel_drain at tick 60), then verify score on pulse
+        recs = run_contract_simulation(
+            seed=3, night=1, ticks=70, snapshot_every=70, scenario=scenario, inputs=None
+        )
+        evs = [r for r in recs if r["type"] == "event"]
+        self.assertTrue(any(e["name"] == "fuel_drain" and e["data"]["shade_id"] == "S1" for e in evs))
+        snap70 = [r for r in recs if r["type"] == "snapshot" and r["tick"] == 70][0]
+        self.assertEqual(snap70["shades"][0]["state"], "drain")
+
+        # Pulse a draining shade awards +15
+        scenario_p = {
+            "player": {"pos": [1.0, 0, 0], "carried": 3, "flames": 3},
+            "random_motes": False,
+            "random_shades": False,
+            "motes": [],
+            "shades": [{"id": "S1", "pos": [0.0, 1.0, 0.0], "state": "drain", "target_lantern_id": "L1"}],
+            "lanterns": [{"id": "L1", "pos": [0, 0, 0], "lit": True, "fuel": 20.0}],
+            "time_left_s": 10.0,
+        }
+        inputs_p = {"frames": [{"tick": 0, "pulse": True}, {"tick": 1, "pulse": False}]}
+        recs_p = run_contract_simulation(
+            seed=3, night=1, ticks=5, snapshot_every=5, scenario=scenario_p, inputs=inputs_p
+        )
+        snap5 = [r for r in recs_p if r["type"] == "snapshot" and r["tick"] == 5][0]
+        self.assertEqual(snap5["score"], 15)
 
     def test_pulse_stuns_pushes_and_safe_zone_blocks(self) -> None:
         scenario = {

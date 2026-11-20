@@ -49,6 +49,25 @@
   7. Pause (`Esc`/`P` or `pause: true` input) freezes `sim_tick`, timers, spawns, and TTLs with `state: "paused"`, and resumes cleanly.
   8. Full 21,600-tick headless Night runs in `<= 30s`; 3D client runs smoothly (`>= 30 FPS` at `1280×720`) with full HUD, 3-Night campaign flow, saved settings, and Web Audio SFX.
 
+## Phase 3 (Ticket-03 — "Đèn cạn dầu" & Contract v1.2)
+- **Replaced Rules (`[THAY THẾ]`):**
+  1. Lit lanterns now have `fuel` (`0..100`, tracked in integer `1/60` units = `0..6000`), decay `1.0/s`, can be refueled (`+10/mote`), go out at `0` (`lantern_out`), and relight for `5` motes (`ever_lit = true`).
+  2. Lanterns with `fuel < 30` lose their `6m` safe zone; `wander` shades target the nearest weak lit lantern (`fuel < 30`) or nearest unlit lantern, enter `drain` at `<= 2m` XZ (`5/s` drain + `fuel_drain` every 60 ticks), and are pushed out if refueled `>= 30`.
+  3. Nights no longer end early on lighting all lanterns; Nights 1/2/3 last `240/270/300s`, winning requires surviving to dawn with `lit >= ceil(0.6 * total)` (`dawn_survived`).
+  4. Scoring replaced: `+5` per mote deposited, `+100` first light, `+40` relight, `+5` pulse (`+15` if shade was `drain`), dawn bonus `+50 + floor(fuel)` per lit lantern + `50 * flames` (time bonus removed).
+- **Ambiguities & Assumptions:**
+  - `fuel_drain` counter: each draining shade increments its own `drain_ticks` counter while in `drain`, emitting `fuel_drain` every 60 ticks (`drain_ticks % 60 == 0`).
+  - `wander` target when no weak lit lantern (`fuel < 30`) exists: shade drifts toward nearest unlit lantern (with small patrol orbit so it doesn't freeze on top of the post).
+  - `player_hit` / `all_lit` Phase 2 win test (`test_mote_deposit_lantern_and_win`) will be updated to verify lighting `L1` does NOT end the night early, and surviving to dawn with `>= 3/5` lit triggers `dawn_survived`.
+- **Acceptance Criteria:**
+  1. `game.contract.json` (`1.2`) matches `TUNING` and all Phase 3 keys.
+  2. Integer `1/60` fuel math decays `1.0/s`, refuels `min(carried, ceil((100-fuel)/10))`, skips full lanterns, emits `lantern_out`, and relights for `5` motes.
+  3. Shade `wander -> drain -> chase/stunned/wander` transitions, `5/s` drain, `fuel_drain` every 60 ticks, `< 30` safe-zone loss, and `>= 30` refuel push-out work deterministically.
+  4. Winning at dawn requires `lit >= ceil(0.6 * total)` (`dawn_survived`), while `flames == 0` always loses (`no_flames`) first.
+  5. `capacity = min(20, 10 + 2 * successful_lights)` updates on first light & relight, not scenario pre-lit lanterns.
+  6. New scoring (`+5` deposit, `+100`/`+40` light, `+15` drain-pulse, dawn lantern+flame bonus) matches Ticket-03.
+  7. Colorblind Mode toggle persists in `localStorage` and updates shade rim/eyes (`#00B3FF`), danger UI (`#FFFFFF` + `⚠`), and non-color unlit/low-fuel cues.
+
 ## Phase 2 (Ticket-02)
 - **Clarifications / Updates to Phase 1 Assumptions:**
   - *(List any assumptions refined or overridden.)*

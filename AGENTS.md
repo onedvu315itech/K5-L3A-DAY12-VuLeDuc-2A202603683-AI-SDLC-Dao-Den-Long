@@ -3,6 +3,7 @@
 <!-- [CP0] Baseline stack, architecture rules, doc routing, and pre-code confirmation gate -->
 <!-- [Phase 1] Added PRD-0 / Test Contract v1.0 rules: root game.contract.json, 60Hz tick model, exit codes, and JSONL output -->
 <!-- [Phase 2] Upgraded to Ticket-02 ("Ba hòn đảo") & Test Contract v1.1: 3 nights (1/2/3), standardized tuning, 12-step tick order, pause, drifters, charms, wind, <=30s headless budget -->
+<!-- [Phase 3] Upgraded to Ticket-03 ("Đèn cạn dầu") & Test Contract v1.2: lantern fuel/decay/drain, dawn_survived win rule, progressive capacity, new scoring, colorblind mode, ADR + CHANGELOG -->
 
 ## 1. Mandatory Pre-Code Gate (STOP & CONFIRM FIRST)
 Whenever new phase requirements or tickets arrive (`PRD-0`, `Ticket-02`, `Ticket-03`, `Ticket-04`), **DO NOT write or edit game code yet**:

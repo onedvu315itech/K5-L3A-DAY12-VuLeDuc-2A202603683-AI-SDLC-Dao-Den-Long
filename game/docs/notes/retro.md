@@ -21,8 +21,11 @@
 
 ### Phase 3 (`phase-3`)
 - Met:
+  - Implemented Ticket-03 fuel decay (`1/s`), refuel, `lantern_out`, `5`-mote relight, Shade `drain` (`5/s` on `fuel < 30`), progressive capacity (`10..20`), `dawn_survived` win rule (`>= 60%` lit at dawn), new scoring, Colorblind Mode, ADR-001, and `CHANGELOG.md`.
 - Rule pivots & updated tests:
+  - Updated `test_mote_deposit_lantern_and_win` -> `test_no_early_win_and_dawn_survived` with documented reason (early `all_lit` win replaced by `dawn_survived`).
 - Harness / process adjustments:
+  - Integer `1/60` fuel accounting (`fuel_sixtieths`) prevented float drift and kept `verify.py` fast (`3.248s` for 21,600 ticks).
 
 ### Phase 4 (`phase-4`)
 - Met:

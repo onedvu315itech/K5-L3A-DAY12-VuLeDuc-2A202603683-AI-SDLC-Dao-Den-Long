@@ -25,13 +25,14 @@ Then open `http://127.0.0.1:8000` in your browser to play **Đêm 1 – Đảo B
 - `F` hoặc `J`: Tỏa Sáng (`pulse`, tốn `3` đom đóm, bán kính `5.0m`, choáng `2.0s` & đẩy lùi `4.0m`, hồi chiêu `3.0s`)
 - `Esc` hoặc `P`: Tạm dừng (`pause`)
 
-### Scoring & Tuning (Cách tính điểm & thông số chuẩn — Contract v1.1)
+### Scoring & Tuning (Cách tính điểm & thông số chuẩn — Contract v1.2)
 Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game.contract.json):
-- **Nạp đom đóm vào đèn:** `+10` điểm / đom đóm nạp (`carry_capacity = 10`, `lantern_cost = 10`).
-- **Thắp sáng Đèn Lồng Lớn (`per_lantern`):** `+100` điểm / đèn (Đêm 1: `5`, Đêm 2: `6`, Đêm 3: `7`).
-- **Tỏa Sáng trúng Bóng Mực (`per_stun`):** `+5` điểm / Bóng Mực mỗi lần.
-- **Thưởng khi Thắng Đêm:** `+ floor(time_left_s) × 2 + 50 × flames`.
-- **`fall_enabled = true`:** Rơi khỏi đảo (`Y < -10`) mất `1` Ngọn Lửa và toàn bộ đom đóm mang theo, hồi sinh tại `(0,0,0)` sau `60` tick.
+- **Nạp đom đóm vào đèn (thắp mới / thắp lại / châm dầu):** `+5` điểm / đom đóm nạp (`capacity = min(20, 10 + 2 × successful_lights)`).
+- **Thắp đèn lần đầu / Thắp lại:** `+100` lần đầu (`10` đom đóm) · `+40` thắp lại (`5` đom đóm).
+- **Châm dầu đèn đang sáng (`fuel < 100`):** `+10` fuel / đom đóm; đèn tự hao `1.0/s` và bị Bóng Mực hút `5/s` khi `fuel < 30`.
+- **Tỏa Sáng trúng Bóng Mực (`per_stun`):** `+5` điểm / Bóng Mực (`+15` nếu đang hút dầu `drain`).
+- **Thắng khi giữ đảo sáng tới Bình Minh (`dawn_survived`):** Đêm 1/2/3 (`240/270/300s`) cần ≥ `60%` số đèn đang sáng (`3/5`, `4/6`, `5/7`); thưởng `+50 + floor(fuel)` mỗi đèn sáng + `+50` mỗi Ngọn Lửa còn lại.
+- **Tài liệu thay đổi Phase 3:** Xem [ADR-001](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/notes/adr-001-lantern-fuel-dawn.md) và [CHANGELOG.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/CHANGELOG.md).
 
 ### Tests & Headless Mode (Test Contract v1.1)
 - **Run full verification suite (unit tests + Nights 1–3 headless + 21,600-tick determinism & perf):**
