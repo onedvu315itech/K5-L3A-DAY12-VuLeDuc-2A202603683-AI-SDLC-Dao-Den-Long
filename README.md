@@ -1,6 +1,6 @@
 # Day 12 — AI SDLC: Đảo Đèn Lồng
 
-> **Demo Video:** *(Link to `v1.0.0` Release `demo.mp4` or `docs/demo/demo.mp4` will be added in Phase 4)*
+> **Demo Video:** [Watch Demo Video (`v1.0.0/demo.mp4`)](https://github.com/onedvu315itech/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/releases/download/v1.0.0/demo.mp4)
 > **Cá nhân** (1 người / 1 MSSV) · Áp dụng SDLC cùng AI để xây một **game 3D** qua **4 phase**, từ yêu cầu ban đầu tới bản phát hành.
 > **Lab board + trợ giảng:** **[Đảo Đèn Lồng Lab](https://claude.ai/artifact/Q1RYyv1dxjUczzCbd2ZnoW)**
 
