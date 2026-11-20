@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đảo Đèn Lồng — CP0 Hello 3D</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #070b14;
+      color: #e2e8f0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #hud {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      padding: 10px 14px;
+      background: rgba(10, 15, 28, 0.78);
+      border: 1px solid rgba(255, 204, 102, 0.35);
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.5;
+      z-index: 10;
+    }
+    button {
+      margin-top: 6px;
+      padding: 4px 10px;
+      background: #f59e0b;
+      color: #0f172a;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="hud">
+    <div><strong>Đảo Đèn Lồng</strong> (CP0 Hello 3D)</div>
+    <div id="status">Connecting to simulation...</div>
+    <div>Controls: <code>WASD</code> / Arrow keys to move Mây</div>
+    <button id="resetBtn">Reset (R)</button>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
+
+    const statusEl = document.getElementById('status');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070b14);
+    scene.fog = new THREE.FogExp2(0x070b14, 0.045);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    document.body.appendChild(renderer.domElement);
+
+    const ambient = new THREE.AmbientLight(0x334155, 1.4);
+    scene.add(ambient);
+    const moonLight = new THREE.DirectionalLight(0x93c5fd, 0.8);
+    moonLight.position.set(6, 12, 8);
+    scene.add(moonLight);
+
+    const ground = new THREE.Mesh(
+      new THREE.CylinderGeometry(14, 15, 0.6, 48),
+      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
+    );
+    ground.position.y = -0.3;
+    scene.add(ground);
+
+    const playerGroup = new THREE.Group();
+    const playerBody = new THREE.Mesh(
+      new THREE.CapsuleGeometry(0.35, 0.7, 8, 16),
+      new THREE.MeshStandardMaterial({ color: 0x60a5fa })
+    );
+    playerBody.position.y = 0.7;
+    playerGroup.add(playerBody);
+
+    const handLantern = new THREE.PointLight(0xfbbf24, 3.0, 8);
+    handLantern.position.set(0.35, 0.9, 0.25);
+    playerGroup.add(handLantern);
+    scene.add(playerGroup);
+
+    const lanternMeshes = new Map();
+    function syncLanterns(lanterns) {
+      for (const l of lanterns) {
+        let entry = lanternMeshes.get(l.id);
+        if (!entry) {
+          const group = new THREE.Group();
+          const pillar = new THREE.Mesh(
+            new THREE.BoxGeometry(0.7, 1.8, 0.7),
+            new THREE.MeshStandardMaterial({ color: 0x475569 })
+          );
+          pillar.position.y = 0.9;
+          const orb = new THREE.Mesh(
+            new THREE.SphereGeometry(0.45, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0x334155, emissive: 0x000000 })
+          );
+          orb.position.y = 2.0;
+          const glow = new THREE.PointLight(0xf59e0b, 0.0, 12);
+          glow.position.y = 2.1;
+          group.add(pillar, orb, glow);
+          group.position.set(l.x, l.y, l.z);
+          scene.add(group);
+          entry = { group, orb, glow };
+          lanternMeshes.set(l.id, entry);
+        }
+        entry.orb.material.emissive.setHex(l.lit ? 0xfbbf24 : 0x000000);
+        entry.orb.material.color.setHex(l.lit ? 0xfef08a : 0x334155);
+        entry.glow.intensity = l.lit ? 5.0 : 0.0;
+      }
+    }
+
+    const keys = new Set();
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      keys.add(k);
+      if (k === 'r') resetGame();
+    });
+    window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    async function resetGame() {
+      const res = await fetch('/api/reset', { method: 'POST', body: '{}' });
+      applySnapshot(await res.json());
+    }
+    resetBtn.addEventListener('click', resetGame);
+
+    function applySnapshot(snap) {
+      playerGroup.position.set(snap.player.x, snap.player.y, snap.player.z);
+      playerGroup.rotation.y = snap.player.yaw;
+      syncLanterns(snap.lanterns);
+
+      const litCount = snap.lanterns.filter((l) => l.lit).length;
+      statusEl.textContent = `Tick ${snap.tick} | Pos (${snap.player.x.toFixed(2)}, ${snap.player.z.toFixed(2)}) | Lanterns: ${litCount}/${snap.lanterns.length}`;
+
+      camera.position.set(snap.player.x, snap.player.y + 4.5, snap.player.z + 6.5);
+      camera.lookAt(snap.player.x, snap.player.y + 0.8, snap.player.z);
+    }
+
+    let stepping = false;
+    async function tickLoop() {
+      if (!stepping) {
+        stepping = true;
+        try {
+          let moveX = 0;
+          let moveZ = 0;
+          if (keys.has('a') || keys.has('arrowleft')) moveX -= 1;
+          if (keys.has('d') || keys.has('arrowright')) moveX += 1;
+          if (keys.has('w') || keys.has('arrowup')) moveZ -= 1;
+          if (keys.has('s') || keys.has('arrowdown')) moveZ += 1;
+
+          const res = await fetch('/api/step', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ move_x: moveX, move_z: moveZ, ticks: 1 }),
+          });
+          applySnapshot(await res.json());
+        } catch (err) {
+          statusEl.textContent = 'Server disconnected';
+        } finally {
+          stepping = false;
+        }
+      }
+      renderer.render(scene, camera);
+      requestAnimationFrame(tickLoop);
+    }
+
+    fetch('/api/state').then((r) => r.json()).then(applySnapshot);
+    requestAnimationFrame(tickLoop);
+  </script>
+</body>
+</html>

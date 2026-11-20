@@ -1,7 +1,31 @@
 # Day 12 — AI SDLC: Đảo Đèn Lồng
 
+> **Demo Video:** *(Link to `v1.0.0` Release `demo.mp4` or `docs/demo/demo.mp4` will be added in Phase 4)*
 > **Cá nhân** (1 người / 1 MSSV) · Áp dụng SDLC cùng AI để xây một **game 3D** qua **4 phase**, từ yêu cầu ban đầu tới bản phát hành.
 > **Lab board + trợ giảng:** **[Đảo Đèn Lồng Lab](https://claude.ai/artifact/Q1RYyv1dxjUczzCbd2ZnoW)**
+
+## Quick Start (≤ 3 commands)
+
+Requires **Python >= 3.11** (uses stdlib only; no extra Python install needed). All game files live in `game/`.
+
+```bash
+git clone https://github.com/onedvu315itech/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long.git
+cd K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game
+python3 -m src.play   # Windows if `python3` hits Store alias: use `python3.12 -m src.play`
+```
+
+Then open `http://127.0.0.1:8000` in your browser.
+
+### Controls
+- `W A S D` / Arrow keys: Move Mây
+- `R`: Reset simulation
+
+### Tests & Headless Mode
+- **Run full verification (unit tests + headless determinism):** `python3 game/scripts/verify.py`
+- **Run headless simulation (from `game/`):** `python3 -m src.headless --steps 90 --seed 42`
+
+### Sáng tạo của tôi
+*(To be added in later phases without breaking the Test Contract.)*
 
 ---
 

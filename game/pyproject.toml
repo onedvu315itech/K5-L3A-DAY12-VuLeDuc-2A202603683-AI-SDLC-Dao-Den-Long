@@ -1,0 +1,6 @@
+[project]
+name = "dao-den-long"
+version = "0.1.0"
+description = "Dao Den Long — 3D third-person game with deterministic headless simulation"
+requires-python = ">=3.11"
+dependencies = []
