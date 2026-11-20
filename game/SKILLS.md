@@ -51,4 +51,12 @@ Use **one skill per focused task**. Do not mix unrelated edits (e.g., do not edi
 - **Steps:** Run `python3.12 game/scripts/verify.py`, record actual command output in `game/docs/proof/phase-N.md`, update `game/docs/notes/ai-log.md` and `game/docs/notes/retro.md`.
 - **Done check:** Exit code `0`, proof matches real output, honest `PASS` / `NOT MET` status recorded.
 
-<!-- [Phase 1+] Add new single-job skills below with <!-- [Phase N] --> tags as needed -->
+<!-- [Phase 1] PRD-0 & Test Contract v1.0 additions to single-job skills -->
+
+## Phase 1 Skill Extensions
+- **Skill 2 (Build Character):** Add conical hat (*nón lá*) with hanging small lantern to Mây; render jump height (`player.pos[1]`), stun pulse wave effect, and invulnerability blink feedback.
+- **Skill 3 (Build Environment):** Render circular *Đảo Bến* (`R = 42m`, ground `Y = 0`), shoreline markers, and dynamic ambient/fog brightening proportional to `lit_lanterns / 5`.
+- **Skill 4 (Build Movement & Core Logic):** Implement `cam_yaw_deg`-rotated normalized `move` (`x' = x*cosθ + z*sinθ`, `z' = -x*sinθ + z*cosθ`), edge-triggered `jump` (`Y = 0` ground + gravity), `60Hz` fixed timestep, `time_left_s`, and circular island clamping (`fall_enabled = false`).
+- **Skill 5 (Build Entities & Interactions):** Implement 5 Great Lanterns (`L1..L5`), firefly spawning/pickup (`pickup_radius`, `carry_capacity`), edge-triggered `interact` deposit (`interact_radius`, `lantern_cost`), edge-triggered `pulse` (`pulse_cost`, `pulse_radius`, `pulse_push_m`, `pulse_stun_s`, `pulse_cooldown_s`), Shadow Ink chase/safe-radius avoidance/hit (`shade_speed`, `safe_radius`, `shade_hit_radius`, `invuln_s`, `hit_drop_ratio`), and scoring/win/loss rules.
+- **Skill 6 (Build Headless & Test Contract CLI):** Update `game/src/headless.py` to support `--seed`, `--night 1`, `--scenario`, `--inputs`, `--ticks`, `--out`, `--snapshot-every`, strict schema validation (exit code `2` on invalid scenario/inputs), and exact JSONL output per `game/OUTPUTS.md`. Sync all tuning constants with root `game.contract.json`.
+- **Skill 8 (Build HUD & Replay Flow):** *(Added in Phase 1)* Display flames, carried motes, lit lanterns (`x/5`), score, timer, pulse cooldown, and Win/Lose modal with Play Again reset in `game/web/index.html`.

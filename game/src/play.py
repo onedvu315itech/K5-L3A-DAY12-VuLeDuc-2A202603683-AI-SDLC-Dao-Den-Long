@@ -8,18 +8,30 @@ from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
+import sys
 import threading
 
-from src.core.engine import GameEngine, StepInput
+GAME_DIR = Path(__file__).resolve().parent.parent
+if str(GAME_DIR) not in sys.path:
+    sys.path.insert(0, str(GAME_DIR))
+
+from src.core.engine import GameEngine, StepInput  # noqa: E402
 
 
-WEB_DIR = Path(__file__).resolve().parent.parent / "web"
+WEB_DIR = GAME_DIR / "web"
 
 
 class GameServerState:
-    def __init__(self) -> None:
+    def __init__(self, seed: int = 42) -> None:
         self.lock = threading.Lock()
-        self.engine = GameEngine()
+        self.engine = GameEngine(seed=seed)
+        self.recent_events: list[dict] = []
+
+    def payload(self, step_events: list[dict] | None = None) -> dict:
+        snap = self.engine.ui_snapshot()
+        snap["events"] = step_events or []
+        snap["recent_events"] = self.recent_events[-8:]
+        return snap
 
 
 class GameRequestHandler(SimpleHTTPRequestHandler):
@@ -28,7 +40,7 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(WEB_DIR), **kwargs)
 
     def log_message(self, format: str, *args) -> None:  # noqa: A002
-        return  # Keep console clean during interactive play
+        return
 
     def _send_json(self, data: dict, status: int = HTTPStatus.OK) -> None:
         body = json.dumps(data).encode("utf-8")
@@ -41,7 +53,7 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path == "/api/state":
             with self.state.lock:
-                self._send_json(self.state.engine.snapshot())
+                self._send_json(self.state.payload())
             return
         if self.path == "/health":
             self._send_json({"ok": True})
@@ -60,33 +72,51 @@ class GameRequestHandler(SimpleHTTPRequestHandler):
         with self.state.lock:
             if self.path == "/api/reset":
                 seed = payload.get("seed")
-                self._send_json(self.state.engine.reset(seed=seed))
+                self.state.engine.reset(seed=seed)
+                self.state.recent_events.clear()
+                self._send_json(self.state.payload())
                 return
             if self.path == "/api/step":
                 ticks = max(1, min(int(payload.get("ticks", 1)), 10))
-                action = StepInput(
-                    move_x=float(payload.get("move_x", 0.0)),
-                    move_z=float(payload.get("move_z", 0.0)),
-                )
-                snap = self.state.engine.snapshot()
-                for _ in range(ticks):
-                    snap = self.state.engine.step(action)
-                self._send_json(snap)
+                move_x = float(payload.get("move_x", 0.0))
+                move_z = float(payload.get("move_z", 0.0))
+                cam_yaw_deg = float(payload.get("cam_yaw_deg", 0.0))
+                jump = bool(payload.get("jump", False))
+                interact = bool(payload.get("interact", False))
+                pulse = bool(payload.get("pulse", False))
+                all_events: list[dict] = []
+                for idx in range(ticks):
+                    # First sub-tick carries latched edge triggers; subsequent sub-ticks reset to False
+                    ev = self.state.engine.step(
+                        StepInput(
+                            move_x=move_x,
+                            move_z=move_z,
+                            cam_yaw_deg=cam_yaw_deg,
+                            jump=jump if idx == 0 else False,
+                            interact=interact if idx == 0 else False,
+                            pulse=pulse if idx == 0 else False,
+                        )
+                    )
+                    if ev:
+                        all_events.extend(ev)
+                        self.state.recent_events.extend(ev)
+                self._send_json(self.state.payload(all_events))
                 return
 
         self._send_json({"error": "Not found"}, HTTPStatus.NOT_FOUND)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Play Dao Den Long 3D")
+    parser = argparse.ArgumentParser(description="Play Đảo Đèn Lồng 3D (Night 1 – Đảo Bến)")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
 
-    state = GameServerState()
+    state = GameServerState(seed=args.seed)
     handler = partial(GameRequestHandler, state=state)
     server = ThreadingHTTPServer((args.host, args.port), handler)
-    print(f"Dao Den Long 3D running at http://{args.host}:{args.port}")
+    print(f"Đảo Đèn Lồng 3D running at http://{args.host}:{args.port}")
     print("Press Ctrl+C to stop.")
     try:
         server.serve_forever()

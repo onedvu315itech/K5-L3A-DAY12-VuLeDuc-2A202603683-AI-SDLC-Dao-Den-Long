@@ -6,26 +6,47 @@
 
 ## Quick Start (≤ 3 commands)
 
-Requires **Python >= 3.11** (uses stdlib only; no extra Python install needed). All game files live in `game/`.
+Requires **Python >= 3.11** (stdlib only; zero external Python packages required).
 
 ```bash
 git clone https://github.com/onedvu315itech/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long.git
-cd K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game
-python3 -m src.play   # Windows if `python3` hits Store alias: use `python3.12 -m src.play`
+cd K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long
+python3 game/src/play.py   # On Windows if `python3` opens Store stub: `python3.12 game/src/play.py`
 ```
 
-Then open `http://127.0.0.1:8000` in your browser.
+Then open `http://127.0.0.1:8000` in your browser to play **Đêm 1 – Đảo Bến**.
 
-### Controls
-- `W A S D` / Arrow keys: Move Mây
-- `R`: Reset simulation
+### Controls (Điều khiển)
+- `W A S D` / `↑ ↓`: Di chuyển Mây theo hướng camera
+- `Space`: Nhảy (`jump`)
+- `Q` / `← →` / Kéo chuột: Xoay góc nhìn camera 3D (`cam_yaw_deg`)
+- `E` hoặc `F`: Nạp đom đóm để thắp Đèn Lồng Lớn (`interact`, trong bán kính `2.5m`, cần `3` đom đóm/đèn)
+- `Shift` hoặc `J`: Tỏa sáng xua và làm choáng Bóng Mực (`pulse`, tốn `1` đom đóm, bán kính `6.0m`, đẩy lùi `5.0m`, choáng `3.0s`, hồi chiêu `3.0s`)
+- `R`: Chơi lại (`Reset / Play Again`)
 
-### Tests & Headless Mode
-- **Run full verification (unit tests + headless determinism):** `python3 game/scripts/verify.py`
-- **Run headless simulation (from `game/`):** `python3 -m src.headless --steps 90 --seed 42`
+### Scoring & Tuning (Cách tính điểm & thông số)
+Khai báo chính xác trong [game.contract.json](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game.contract.json):
+- **Nhặt đom đóm (`per_mote`):** `+10` điểm / đom đóm (tối đa mang `carry_capacity = 5` cùng lúc).
+- **Thắp sáng Đèn Lồng Lớn (`per_lantern`):** `+100` điểm / đèn (cần `lantern_cost = 3` đom đóm; tổng `5` đèn `L1..L5`).
+- **Làm choáng Bóng Mực (`per_stun`):** `+25` điểm / Bóng Mực bị làm choáng khi tỏa sáng (`pulse`).
+- **Thưởng khi Thắng (`all_lit`):**
+  - Thời gian đêm còn lại (`per_second_left`): `+5` điểm × số giây còn lại (`round(time_left_s * 5)`).
+  - Lửa tâm còn lại (`per_flame_left`): `+50` điểm × số lửa tâm còn lại (`flames`, bắt đầu với `3`).
+- **`fall_enabled = false`:** Đảo Bến có ranh giới bờ đảo an toàn (`R = 42m`), nhân vật không rơi khỏi đảo.
+
+### Tests & Headless Mode (Test Contract v1.0)
+- **Run full verification suite (unit tests + contract CLI + determinism):**
+  ```bash
+  python3 game/scripts/verify.py
+  ```
+- **Run headless contract CLI:**
+  ```bash
+  python3 game/src/headless.py --seed 42 --night 1 --scenario game/tests/scenarios/win_scenario.json --inputs game/tests/scenarios/win_inputs.json --ticks 200 --out out.jsonl --snapshot-every 25
+  ```
 
 ### Sáng tạo của tôi
-*(To be added in later phases without breaking the Test Contract.)*
+- **Đèn Hoa Đăng Bến Nước (Shoreline Floating Lotus Lanterns):** Vòng 10 chiếc đèn hoa đăng trôi nhẹ quanh bờ nước Đảo Bến. Mỗi khi Mây thắp sáng thêm 1 Đèn Lồng Lớn, 2 cụm đèn hoa đăng nơi bến nước sẽ tự động bừng sáng ấm áp đồng điệu cùng ánh sáng dần xua tan sương đen trên đảo.
+- **Tuân thủ Test Contract:** Hiệu ứng hoa đăng và độ sáng sương mù chỉ nằm ở tầng hiển thị 3D ([game/web/index.html](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/web/index.html)), hoàn toàn không thêm thực thể hay thay đổi đầu ra JSONL của chế độ headless ([game/docs/proof/phase-1.md](file:///d:/aithucchien-vinuni/projects/K5-L3A-DAY12-VuLeDuc-2A202603683-AI-SDLC-Dao-Den-Long/game/docs/proof/phase-1.md)).
 
 ---
 

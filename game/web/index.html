@@ -1,131 +1,1026 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Đảo Đèn Lồng — CP0 Hello 3D</title>
+  <title>Đảo Đèn Lồng — Đêm 1: Đảo Bến (Whimsical Nightscape)</title>
   <style>
+    :root {
+      --color-night-950: #071326;
+      --color-night-900: #0B1D35;
+      --color-night-800: #102B49;
+      --color-blue-700: #16466A;
+      --color-blue-500: #267FA0;
+      --color-teal-300: #63C6C8;
+      --color-moon-100: #FFF0B7;
+      --color-star-100: #F7F7FF;
+      --color-lavender-200: #C6B9E8;
+      --color-violet-900: #29233F;
+      --color-ink-950: #171923;
+      --color-mist-100: #E9EDF2;
+
+      --surface-page: var(--color-night-950);
+      --surface-raised: rgba(11, 29, 53, 0.82);
+      --text-primary: var(--color-star-100);
+      --text-muted: #B8C7D8;
+      --accent-primary: var(--color-moon-100);
+      --accent-secondary: var(--color-teal-300);
+
+      --radius-card: 12px;
+      --radius-control: 8px;
+    }
+
+    * { box-sizing: border-box; }
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #070b14;
-      color: #e2e8f0;
-      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--surface-page);
+      color: var(--text-primary);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      user-select: none;
     }
+
     #hud {
       position: fixed;
-      top: 12px;
-      left: 12px;
-      padding: 10px 14px;
-      background: rgba(10, 15, 28, 0.78);
-      border: 1px solid rgba(255, 204, 102, 0.35);
-      border-radius: 8px;
-      font-size: 13px;
-      line-height: 1.5;
+      top: 14px;
+      left: 14px;
+      min-width: 295px;
+      max-width: calc(100vw - 28px);
+      padding: 13px 16px;
+      background: var(--surface-raised);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 240, 183, 0.3);
+      border-radius: var(--radius-card);
+      box-shadow: 0 10px 28px rgba(7, 19, 38, 0.65);
+      font-size: 13.5px;
+      line-height: 1.55;
       z-index: 10;
     }
-    button {
-      margin-top: 6px;
-      padding: 4px 10px;
-      background: #f59e0b;
-      color: #0f172a;
-      border: none;
-      border-radius: 4px;
+    .hud-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 0.01em;
+    }
+    .hud-badge {
+      font-size: 11.5px;
       font-weight: 600;
+      color: var(--accent-secondary);
+      background: rgba(22, 70, 106, 0.55);
+      border: 1px solid rgba(99, 198, 200, 0.35);
+      padding: 1px 8px;
+      border-radius: 999px;
+    }
+    .hud-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 2px 0;
+    }
+    .hud-label { color: var(--text-muted); }
+    .hud-val { font-weight: 600; color: var(--accent-primary); }
+    .hud-val.cool { color: var(--accent-secondary); }
+    .hud-val.danger { color: var(--color-lavender-200); }
+    .hud-hint {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(184, 199, 216, 0.18);
+      font-size: 11.8px;
+      color: var(--text-muted);
+    }
+    kbd {
+      background: var(--color-night-950);
+      border: 1px solid rgba(184, 199, 216, 0.35);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-size: 11px;
+      color: var(--text-primary);
+    }
+
+    #promptBanner {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 18px;
+      background: rgba(11, 29, 53, 0.9);
+      border: 1px solid rgba(255, 240, 183, 0.45);
+      border-radius: 999px;
+      color: var(--accent-primary);
+      font-weight: 600;
+      font-size: 13.5px;
+      box-shadow: 0 6px 20px rgba(7, 19, 38, 0.6);
+      z-index: 10;
+      display: none;
+    }
+
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 19, 38, 0.88);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .modal-card {
+      background: var(--color-night-900);
+      border: 1.5px solid rgba(255, 240, 183, 0.45);
+      border-radius: var(--radius-card);
+      padding: 28px 36px;
+      text-align: center;
+      max-width: 410px;
+      box-shadow: 0 18px 44px rgba(7, 19, 38, 0.8);
+    }
+    .modal-card h2 {
+      margin: 0 0 8px;
+      font-size: 25px;
+      color: var(--accent-primary);
+    }
+    .modal-card p {
+      margin: 6px 0;
+      color: var(--color-mist-100);
+      font-size: 15px;
+    }
+    .btn {
+      margin-top: 16px;
+      padding: 9px 22px;
+      background: var(--color-moon-100);
+      color: var(--color-ink-950);
+      border: 2px solid transparent;
+      border-radius: var(--radius-control);
+      font-weight: 700;
+      font-size: 14px;
       cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.12s ease;
+    }
+    .btn:hover {
+      background: #ffe58f;
+      transform: translateY(-1px);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--color-teal-300);
+      outline-offset: 2px;
+    }
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn { transition: none; }
     }
   </style>
 </head>
 <body>
   <div id="hud">
-    <div><strong>Đảo Đèn Lồng</strong> (CP0 Hello 3D)</div>
-    <div id="status">Connecting to simulation...</div>
-    <div>Controls: <code>WASD</code> / Arrow keys to move Mây</div>
-    <button id="resetBtn">Reset (R)</button>
+    <div class="hud-title">
+      <span>Đảo Đèn Lồng · Đêm 1</span>
+      <span id="hudState" class="hud-badge">Đảo Bến</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Lửa tâm (Máu):</span>
+      <span class="hud-val" id="hudFlames">🔥🔥🔥 (3)</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Đom đóm mang theo:</span>
+      <span class="hud-val" id="hudCarried">0 / 5</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Đèn Lồng Lớn:</span>
+      <span class="hud-val" id="hudLanterns">0 / 5</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Tỏa sáng (Xua Bóng Mực):</span>
+      <span class="hud-val cool" id="hudPulse">Sẵn sàng (1 đom đóm)</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Thời gian còn lại:</span>
+      <span class="hud-val" id="hudTime">04:00</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-label">Điểm số:</span>
+      <span class="hud-val" id="hudScore">0</span>
+    </div>
+    <div class="hud-hint">
+      <div><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Di chuyển · <kbd>Space</kbd> Nhảy · <kbd>Q</kbd>/<kbd>← →</kbd>/Chuột Xoay góc nhìn</div>
+      <div><kbd>E</kbd> hoặc <kbd>F</kbd> Thắp đèn · <kbd>Shift</kbd> hoặc <kbd>J</kbd> Tỏa sáng · <kbd>R</kbd> Chơi lại</div>
+    </div>
+  </div>
+
+  <div id="promptBanner">Nhấn [E] để nạp đom đóm vào Đèn Lồng Lớn</div>
+
+  <div id="modalOverlay">
+    <div class="modal-card">
+      <h2 id="modalTitle">Chiến Thắng!</h2>
+      <p id="modalReason">Mây đã thắp sáng toàn bộ 5 Đèn Lồng Lớn trên Đảo Bến.</p>
+      <p style="font-size:19px;font-weight:700;color:var(--color-moon-100);" id="modalScore">Điểm: 0</p>
+      <button class="btn" id="playAgainBtn">Chơi lại (R)</button>
+    </div>
   </div>
 
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.170.0/build/three.module.js';
 
-    const statusEl = document.getElementById('status');
-    const resetBtn = document.getElementById('resetBtn');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const hudFlames = document.getElementById('hudFlames');
+    const hudCarried = document.getElementById('hudCarried');
+    const hudLanterns = document.getElementById('hudLanterns');
+    const hudPulse = document.getElementById('hudPulse');
+    const hudTime = document.getElementById('hudTime');
+    const hudScore = document.getElementById('hudScore');
+    const promptBanner = document.getElementById('promptBanner');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalReason = document.getElementById('modalReason');
+    const modalScore = document.getElementById('modalScore');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // Design System Palette Tokens (from game/DESIGNS.md)
+    const PALETTE = {
+      night950: 0x071326,
+      night900: 0x0B1D35,
+      night800: 0x102B49,
+      blue700:  0x16466A,
+      blue500:  0x267FA0,
+      teal300:  0x63C6C8,
+      moon100:  0xFFF0B7,
+      star100:  0xF7F7FF,
+      lavender200: 0xC6B9E8,
+      violet900: 0x29233F,
+      ink950:   0x171923,
+      mist100:  0xE9EDF2,
+      warmGold: 0xFBBF24,
+      warmAmber: 0xF59E0B,
+    };
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x070b14);
-    scene.fog = new THREE.FogExp2(0x070b14, 0.045);
+    scene.background = new THREE.Color(PALETTE.night950);
+    scene.fog = new THREE.FogExp2(PALETTE.night950, 0.0175);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(56, window.innerWidth / window.innerHeight, 0.1, 280);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0x334155, 1.4);
-    scene.add(ambient);
-    const moonLight = new THREE.DirectionalLight(0x93c5fd, 0.8);
-    moonLight.position.set(6, 12, 8);
+    // Ambient & Moon Directional Lights (Section 3.2: blue-700 fill + teal-300 / moon-100 rim)
+    const ambientLight = new THREE.AmbientLight(PALETTE.blue700, 1.35);
+    scene.add(ambientLight);
+    const hemiLight = new THREE.HemisphereLight(PALETTE.teal300, PALETTE.night950, 0.55);
+    scene.add(hemiLight);
+    const moonLight = new THREE.DirectionalLight(PALETTE.moon100, 0.9);
+    moonLight.position.set(36, 52, -78);
     scene.add(moonLight);
 
-    const ground = new THREE.Mesh(
-      new THREE.CylinderGeometry(14, 15, 0.6, 48),
-      new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 })
+    // 1. Celestial Sky Dome: Dense Star Field (stone.jpg / blinking_light.jpg) & Glowing Full Moon (noel_moon.jpg)
+    const starCount = 720;
+    const starPositions = new Float32Array(starCount * 3);
+    const starColors = new Float32Array(starCount * 3);
+    const cStar = new THREE.Color(PALETTE.star100);
+    const cMoon = new THREE.Color(PALETTE.moon100);
+    const cTeal = new THREE.Color(PALETTE.teal300);
+
+    for (let i = 0; i < starCount; i++) {
+      // Deterministic pseudo-random sky distribution
+      const u = ((i * 73 + 19) % 997) / 997;
+      const v = ((i * 151 + 43) % 991) / 991;
+      const theta = u * Math.PI * 2;
+      const phi = 0.08 + v * (Math.PI * 0.42);
+      const r = 135 + (i % 7) * 4;
+      starPositions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      starPositions[i * 3 + 1] = r * Math.cos(phi) + 8;
+      starPositions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+
+      const pick = i % 5 === 0 ? cMoon : (i % 7 === 0 ? cTeal : cStar);
+      starColors[i * 3] = pick.r;
+      starColors[i * 3 + 1] = pick.g;
+      starColors[i * 3 + 2] = pick.b;
+    }
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+    const starMat = new THREE.PointsMaterial({
+      size: 0.95,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.9,
+      fog: false,
+    });
+    const starField = new THREE.Points(starGeo, starMat);
+    scene.add(starField);
+
+    // Prominent Glowing Full Moon (noel_moon.jpg)
+    const moonGroup = new THREE.Group();
+    const moonCore = new THREE.Mesh(
+      new THREE.SphereGeometry(7.2, 32, 32),
+      new THREE.MeshBasicMaterial({ color: PALETTE.moon100, fog: false })
     );
-    ground.position.y = -0.3;
-    scene.add(ground);
-
-    const playerGroup = new THREE.Group();
-    const playerBody = new THREE.Mesh(
-      new THREE.CapsuleGeometry(0.35, 0.7, 8, 16),
-      new THREE.MeshStandardMaterial({ color: 0x60a5fa })
+    const moonHaloInner = new THREE.Mesh(
+      new THREE.SphereGeometry(9.6, 28, 28),
+      new THREE.MeshBasicMaterial({
+        color: PALETTE.moon100,
+        transparent: true,
+        opacity: 0.22,
+        fog: false,
+      })
     );
-    playerBody.position.y = 0.7;
-    playerGroup.add(playerBody);
+    const moonHaloOuter = new THREE.Mesh(
+      new THREE.SphereGeometry(13.5, 24, 24),
+      new THREE.MeshBasicMaterial({
+        color: PALETTE.teal300,
+        transparent: true,
+        opacity: 0.1,
+        fog: false,
+      })
+    );
+    moonGroup.add(moonCore, moonHaloInner, moonHaloOuter);
+    moonGroup.position.set(36, 50, -96);
+    scene.add(moonGroup);
 
-    const handLantern = new THREE.PointLight(0xfbbf24, 3.0, 8);
-    handLantern.position.set(0.35, 0.9, 0.25);
-    playerGroup.add(handLantern);
-    scene.add(playerGroup);
+    // 2. Moonlit Mountain Lake & Distant Horizon Silhouettes (lake.jpg)
+    const waterMesh = new THREE.Mesh(
+      new THREE.CircleGeometry(155, 72),
+      new THREE.MeshStandardMaterial({
+        color: PALETTE.night900,
+        roughness: 0.35,
+        metalness: 0.45,
+      })
+    );
+    waterMesh.rotation.x = -Math.PI / 2;
+    waterMesh.position.y = -0.32;
+    scene.add(waterMesh);
 
-    const lanternMeshes = new Map();
-    function syncLanterns(lanterns) {
-      for (const l of lanterns) {
-        let entry = lanternMeshes.get(l.id);
-        if (!entry) {
-          const group = new THREE.Group();
-          const pillar = new THREE.Mesh(
-            new THREE.BoxGeometry(0.7, 1.8, 0.7),
-            new THREE.MeshStandardMaterial({ color: 0x475569 })
-          );
-          pillar.position.y = 0.9;
-          const orb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.45, 16, 16),
-            new THREE.MeshStandardMaterial({ color: 0x334155, emissive: 0x000000 })
-          );
-          orb.position.y = 2.0;
-          const glow = new THREE.PointLight(0xf59e0b, 0.0, 12);
-          glow.position.y = 2.1;
-          group.add(pillar, orb, glow);
-          group.position.set(l.x, l.y, l.z);
-          scene.add(group);
-          entry = { group, orb, glow };
-          lanternMeshes.set(l.id, entry);
-        }
-        entry.orb.material.emissive.setHex(l.lit ? 0xfbbf24 : 0x000000);
-        entry.orb.material.color.setHex(l.lit ? 0xfef08a : 0x334155);
-        entry.glow.intensity = l.lit ? 5.0 : 0.0;
+    // Rippled Moon Reflection Strips on the Lake (lake.jpg)
+    const waterRipples = [];
+    for (let i = 0; i < 9; i++) {
+      const ripple = new THREE.Mesh(
+        new THREE.BoxGeometry(2.6 + (i % 3) * 1.1, 0.02, 0.28),
+        new THREE.MeshBasicMaterial({
+          color: i % 2 === 0 ? PALETTE.moon100 : PALETTE.teal300,
+          transparent: true,
+          opacity: 0.32,
+        })
+      );
+      ripple.position.set(16 + i * 2.1, -0.28, -46 - i * 4.2);
+      ripple.rotation.y = -0.38;
+      scene.add(ripple);
+      waterRipples.push(ripple);
+    }
+
+    // Distant Layered Mountain Horizon Ring (lake.jpg — blue-700 & night-900 silhouettes)
+    const mountainGroup = new THREE.Group();
+    const mountainCount = 28;
+    for (let i = 0; i < mountainCount; i++) {
+      const ang = (i / mountainCount) * Math.PI * 2;
+      const dist = 104 + (i % 3) * 9;
+      const height = 18 + ((i * 7) % 16);
+      const width = 16 + ((i * 5) % 10);
+      const mt = new THREE.Mesh(
+        new THREE.ConeGeometry(width, height, 5),
+        new THREE.MeshStandardMaterial({
+          color: i % 2 === 0 ? PALETTE.blue700 : PALETTE.night900,
+          roughness: 0.95,
+          flatShading: true,
+        })
+      );
+      mt.position.set(Math.sin(ang) * dist, height * 0.42 - 1.0, Math.cos(ang) * dist);
+      mt.rotation.y = ang;
+      mountainGroup.add(mt);
+    }
+    scene.add(mountainGroup);
+
+    // 3. Island Terrain & Storybook Nature Silhouettes (tree.jpg, stone.jpg, bush.jpg)
+    const islandGroup = new THREE.Group();
+    const mainGround = new THREE.Mesh(
+      new THREE.CylinderGeometry(42, 43.8, 1.2, 72),
+      new THREE.MeshStandardMaterial({ color: PALETTE.night800, roughness: 0.92 })
+    );
+    mainGround.position.y = -0.6;
+    islandGroup.add(mainGround);
+
+    const shoreRim = new THREE.Mesh(
+      new THREE.RingGeometry(40.8, 42.1, 72),
+      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, side: THREE.DoubleSide, roughness: 0.9 })
+    );
+    shoreRim.rotation.x = -Math.PI / 2;
+    shoreRim.position.y = 0.01;
+    islandGroup.add(shoreRim);
+
+    const innerPathRing = new THREE.Mesh(
+      new THREE.RingGeometry(23.2, 24.8, 72),
+      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, side: THREE.DoubleSide, roughness: 0.86 })
+    );
+    innerPathRing.rotation.x = -Math.PI / 2;
+    innerPathRing.position.y = 0.02;
+    islandGroup.add(innerPathRing);
+
+    const centerPlaza = new THREE.Mesh(
+      new THREE.CircleGeometry(4.2, 36),
+      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.85 })
+    );
+    centerPlaza.rotation.x = -Math.PI / 2;
+    centerPlaza.position.y = 0.02;
+    islandGroup.add(centerPlaza);
+
+    // Radial Stepping Stones from Center Plaza to the 5 Great Lanterns
+    for (let k = 0; k < 5; k++) {
+      const ang = (k * 72 * Math.PI) / 180;
+      for (let r = 6; r <= 21; r += 2.5) {
+        const stone = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.62, 0.72, 0.08, 7),
+          new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.88 })
+        );
+        stone.position.set(Math.sin(ang) * r, 0.02, Math.cos(ang) * r);
+        stone.rotation.y = r + k;
+        islandGroup.add(stone);
       }
     }
 
+    // Landmark Lone Tree Silhouette near Center Plaza (tree.jpg — offset so (0,0,0) spawn stays clear)
+    function createLoneTreeLandmark() {
+      const tree = new THREE.Group();
+      const trunkMat = new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.9 });
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.58, 4.2, 9), trunkMat);
+      trunk.position.y = 2.1;
+      tree.add(trunk);
+
+      const branchConfigs = [
+        { x: 0.9, y: 3.4, z: 0.4, rz: -0.55, rx: 0.2, len: 2.0 },
+        { x: -0.85, y: 3.2, z: -0.3, rz: 0.52, rx: -0.18, len: 1.9 },
+        { x: 0.2, y: 3.6, z: -0.85, rz: -0.15, rx: -0.5, len: 1.8 },
+      ];
+      for (const b of branchConfigs) {
+        const br = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.22, b.len, 7), trunkMat);
+        br.position.set(b.x, b.y, b.z);
+        br.rotation.set(b.rx, 0, b.rz);
+        tree.add(br);
+      }
+
+      const canopyClusters = [
+        { x: 0, y: 4.9, z: 0, r: 2.1, col: PALETTE.night900 },
+        { x: 1.45, y: 4.3, z: 0.55, r: 1.45, col: PALETTE.blue700 },
+        { x: -1.4, y: 4.1, z: -0.45, r: 1.4, col: PALETTE.night900 },
+        { x: 0.3, y: 4.4, z: -1.3, r: 1.35, col: PALETTE.blue700 },
+        { x: -0.4, y: 5.5, z: 0.5, r: 1.3, col: PALETTE.blue500 },
+      ];
+      for (const c of canopyClusters) {
+        const leaf = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(c.r, 1),
+          new THREE.MeshStandardMaterial({ color: c.col, roughness: 0.88, flatShading: true })
+        );
+        leaf.position.set(c.x, c.y, c.z);
+        leaf.scale.y = 0.72;
+        tree.add(leaf);
+      }
+      tree.position.set(-4.8, 0, -4.6);
+      return tree;
+    }
+    islandGroup.add(createLoneTreeLandmark());
+
+    // Mysterious Standing Stones (stone.jpg — between lantern spokes)
+    for (let k = 0; k < 5; k++) {
+      const ang = ((k * 72 + 36) * Math.PI) / 180;
+      const dist = 16.5;
+      const stoneGroup = new THREE.Group();
+      const tallStone = new THREE.Mesh(
+        new THREE.BoxGeometry(1.1, 3.1, 0.75),
+        new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.92 })
+      );
+      tallStone.position.y = 1.55;
+      tallStone.rotation.z = 0.04;
+
+      const runeStrip = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 1.3, 0.78),
+        new THREE.MeshBasicMaterial({ color: PALETTE.teal300, transparent: true, opacity: 0.45 })
+      );
+      runeStrip.position.y = 1.6;
+
+      const sideStone = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.75, 0),
+        new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.9, flatShading: true })
+      );
+      sideStone.position.set(0.85, 0.55, 0.25);
+
+      stoneGroup.add(tallStone, runeStrip, sideStone);
+      stoneGroup.position.set(Math.sin(ang) * dist, 0, Math.cos(ang) * dist);
+      stoneGroup.rotation.y = ang + 0.4;
+      islandGroup.add(stoneGroup);
+    }
+
+    // Perimeter Pines & Layered Bushes (lake.jpg & bush.jpg — around outer rim R = 34..39.5m)
+    for (let i = 0; i < 24; i++) {
+      const ang = (i / 24) * Math.PI * 2 + 0.13;
+      const r = 35.5 + (i % 3) * 1.6;
+      const px = Math.sin(ang) * r;
+      const pz = Math.cos(ang) * r;
+
+      if (i % 2 === 0) {
+        //Layered Pine Silhouette
+        const pine = new THREE.Group();
+        const trunk = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.18, 0.26, 1.2, 7),
+          new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.9 })
+        );
+        trunk.position.y = 0.6;
+        pine.add(trunk);
+
+        const tiers = [
+          { y: 1.7, rad: 1.35, h: 1.9, col: PALETTE.night900 },
+          { y: 2.8, rad: 1.05, h: 1.7, col: PALETTE.blue700 },
+          { y: 3.8, rad: 0.72, h: 1.4, col: PALETTE.night900 },
+        ];
+        for (const t of tiers) {
+          const cone = new THREE.Mesh(
+            new THREE.ConeGeometry(t.rad, t.h, 8),
+            new THREE.MeshStandardMaterial({ color: t.col, roughness: 0.88, flatShading: true })
+          );
+          cone.position.y = t.y;
+          pine.add(cone);
+        }
+        const scale = 0.85 + (i % 4) * 0.14;
+        pine.scale.set(scale, scale, scale);
+        pine.position.set(px, 0, pz);
+        islandGroup.add(pine);
+      } else {
+        // Organic Bush Cluster (bush.jpg)
+        const bush = new THREE.Group();
+        const b1 = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.95, 1),
+          new THREE.MeshStandardMaterial({ color: PALETTE.night900, roughness: 0.9, flatShading: true })
+        );
+        b1.position.set(0, 0.55, 0);
+        b1.scale.y = 0.7;
+        const b2 = new THREE.Mesh(
+          new THREE.DodecahedronGeometry(0.68, 1),
+          new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.9, flatShading: true })
+        );
+        b2.position.set(0.65, 0.42, 0.25);
+        b2.scale.y = 0.7;
+        bush.add(b1, b2);
+        bush.position.set(px, 0, pz);
+        bush.rotation.y = ang;
+        islandGroup.add(bush);
+      }
+    }
+    scene.add(islandGroup);
+
+    // Creative Feature (Visual-only, zero impact on headless):
+    // Shoreline Floating Lotus Lanterns (Đèn Hoa Đăng Bến Nước)
+    const lotusLanterns = [];
+    for (let i = 0; i < 10; i++) {
+      const ang = (i / 10) * Math.PI * 2;
+      const r = 43.4;
+      const g = new THREE.Group();
+      const petals = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.5, 0.3, 0.15, 10),
+        new THREE.MeshStandardMaterial({ color: PALETTE.lavender200, roughness: 0.55 })
+      );
+      const core = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 12, 12),
+        new THREE.MeshStandardMaterial({ color: PALETTE.blue700, emissive: 0x000000 })
+      );
+      core.position.y = 0.16;
+      g.add(petals, core);
+      g.position.set(Math.sin(ang) * r, -0.22, Math.cos(ang) * r);
+      scene.add(g);
+      lotusLanterns.push({ group: g, core, angle: ang });
+    }
+
+    // 4. Mây (Player Character — double_character.jpg & conical_hat.jpg)
+    const playerGroup = new THREE.Group();
+
+    // Storybook Cloaked Body (blue-500 outer cloak + blue-700 hem)
+    const cloakHem = new THREE.Mesh(
+      new THREE.ConeGeometry(0.54, 0.45, 18),
+      new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.7 })
+    );
+    cloakHem.position.y = 0.24;
+    playerGroup.add(cloakHem);
+
+    const cloakBody = new THREE.Mesh(
+      new THREE.ConeGeometry(0.48, 1.05, 18),
+      new THREE.MeshStandardMaterial({ color: PALETTE.blue500, roughness: 0.65 })
+    );
+    cloakBody.position.y = 0.68;
+    playerGroup.add(cloakBody);
+
+    // Storybook Collar / Hood Ring
+    const scarfRing = new THREE.Mesh(
+      new THREE.TorusGeometry(0.24, 0.065, 10, 20),
+      new THREE.MeshStandardMaterial({ color: PALETTE.moon100, roughness: 0.6 })
+    );
+    scarfRing.rotation.x = Math.PI / 2;
+    scarfRing.position.y = 1.1;
+    playerGroup.add(scarfRing);
+
+    // Head & Storybook Eyes
+    const headMesh = new THREE.Mesh(
+      new THREE.SphereGeometry(0.25, 18, 18),
+      new THREE.MeshStandardMaterial({ color: PALETTE.moon100, roughness: 0.55 })
+    );
+    headMesh.position.y = 1.28;
+    playerGroup.add(headMesh);
+
+    const eyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.ink950 });
+    const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
+    leftEye.position.set(0.085, 1.29, 0.22);
+    const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
+    rightEye.position.set(-0.085, 1.29, 0.22);
+    playerGroup.add(leftEye, rightEye);
+
+    // Conical Hat (Nón lá — conical_hat.jpg: wide woven cone, moon-100 rim, radial ribs)
+    const nonLaGroup = new THREE.Group();
+    const nonLaCone = new THREE.Mesh(
+      new THREE.ConeGeometry(0.68, 0.38, 24),
+      new THREE.MeshStandardMaterial({ color: 0xEAB308, roughness: 0.68 })
+    );
+    const nonLaRim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.67, 0.022, 8, 28),
+      new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
+    );
+    nonLaRim.rotation.x = Math.PI / 2;
+    nonLaRim.position.y = -0.18;
+
+    const floralBand = new THREE.Mesh(
+      new THREE.TorusGeometry(0.32, 0.02, 8, 24),
+      new THREE.MeshBasicMaterial({ color: PALETTE.lavender200 })
+    );
+    floralBand.rotation.x = Math.PI / 2;
+    floralBand.position.y = 0.0;
+
+    nonLaGroup.add(nonLaCone, nonLaRim, floralBand);
+    nonLaGroup.position.y = 1.54;
+    playerGroup.add(nonLaGroup);
+
+    // Forward Lantern Rod & Hanging Hand Lantern (+Z forward for clear heading)
+    const lanternRod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.02, 0.02, 0.45, 8),
+      new THREE.MeshStandardMaterial({ color: PALETTE.ink950 })
+    );
+    lanternRod.rotation.x = Math.PI / 2;
+    lanternRod.position.set(0.0, 1.18, 0.42);
+    playerGroup.add(lanternRod);
+
+    const miniLanternCap = new THREE.Mesh(
+      new THREE.ConeGeometry(0.14, 0.09, 8),
+      new THREE.MeshStandardMaterial({ color: PALETTE.ink950 })
+    );
+    miniLanternCap.position.set(0.0, 1.15, 0.62);
+    playerGroup.add(miniLanternCap);
+
+    const miniLanternOrb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.11, 14, 14),
+      new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
+    );
+    miniLanternOrb.position.set(0.0, 1.05, 0.62);
+    playerGroup.add(miniLanternOrb);
+
+    const miniLanternHalo = new THREE.Mesh(
+      new THREE.SphereGeometry(0.22, 12, 12),
+      new THREE.MeshBasicMaterial({
+        color: PALETTE.warmGold,
+        transparent: true,
+        opacity: 0.3,
+      })
+    );
+    miniLanternHalo.position.set(0.0, 1.05, 0.62);
+    playerGroup.add(miniLanternHalo);
+
+    const handLanternLight = new THREE.PointLight(PALETTE.moon100, 3.4, 13);
+    handLanternLight.position.set(0.0, 1.1, 0.65);
+    playerGroup.add(handLanternLight);
+    scene.add(playerGroup);
+
+    // Dual-Ring Pulse Burst Visual (Section 5: cool-teal #63C6C8 + moon-gold #FFF0B7)
+    const pulseWaveGroup = new THREE.Group();
+    const pulseOuterRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.68, 0.96, 48),
+      new THREE.MeshBasicMaterial({
+        color: PALETTE.teal300,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.0,
+      })
+    );
+    pulseOuterRing.rotation.x = -Math.PI / 2;
+    const pulseInnerRing = new THREE.Mesh(
+      new THREE.RingGeometry(0.35, 0.6, 48),
+      new THREE.MeshBasicMaterial({
+        color: PALETTE.moon100,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.0,
+      })
+    );
+    pulseInnerRing.rotation.x = -Math.PI / 2;
+    pulseWaveGroup.add(pulseOuterRing, pulseInnerRing);
+    pulseWaveGroup.position.y = 0.16;
+    scene.add(pulseWaveGroup);
+
+    let pulseAnimAlpha = 0.0;
+    let pulseAnimRadius = 0.5;
+    let seenPulseTick = -1000;
+
+    // 5. Entity Sync Caches (Great Lanterns, Fireflies, Shadow Ink)
+    const lanternMeshes = new Map();
+    const moteMeshes = new Map();
+    const shadeMeshes = new Map();
+
+    function syncLanterns(lanterns, safeRadius, lanternCost, tick) {
+      for (const l of lanterns) {
+        let entry = lanternMeshes.get(l.id);
+        if (!entry) {
+          // Ornate Vintage Street-Lamp / Stone-Wood Lantern Pillar (lamp_post.jpg)
+          const group = new THREE.Group();
+          const basePlinth = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.88, 1.12, 0.45, 8),
+            new THREE.MeshStandardMaterial({ color: PALETTE.blue700, roughness: 0.88 })
+          );
+          basePlinth.position.y = 0.22;
+
+          const lowerPost = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.36, 0.52, 0.9, 8),
+            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.75 })
+          );
+          lowerPost.position.y = 0.85;
+
+          const tallColumn = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.26, 2.2, 12),
+            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.7 })
+          );
+          tallColumn.position.y = 2.2;
+
+          const lampCrown = new THREE.Mesh(
+            new THREE.ConeGeometry(0.92, 0.55, 8),
+            new THREE.MeshStandardMaterial({ color: PALETTE.ink950, roughness: 0.68 })
+          );
+          lampCrown.position.y = 3.85;
+
+          const finial = new THREE.Mesh(
+            new THREE.SphereGeometry(0.14, 10, 10),
+            new THREE.MeshStandardMaterial({ color: PALETTE.teal300, roughness: 0.5 })
+          );
+          finial.position.y = 4.2;
+
+          const orb = new THREE.Mesh(
+            new THREE.SphereGeometry(0.46, 20, 20),
+            new THREE.MeshStandardMaterial({ color: PALETTE.night800, emissive: 0x000000 })
+          );
+          orb.position.y = 3.25;
+
+          const halo = new THREE.Mesh(
+            new THREE.SphereGeometry(0.85, 16, 16),
+            new THREE.MeshBasicMaterial({
+              color: PALETTE.moon100,
+              transparent: true,
+              opacity: 0.0,
+            })
+          );
+          halo.position.y = 3.25;
+
+          // Blinking Star Sparkles around Lit Lantern (blinking_light.jpg)
+          const sparklesGroup = new THREE.Group();
+          for (let s = 0; s < 4; s++) {
+            const sp = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.1, 0),
+              new THREE.MeshBasicMaterial({ color: s % 2 === 0 ? PALETTE.moon100 : PALETTE.star100 })
+            );
+            const a = (s / 4) * Math.PI * 2;
+            sp.position.set(Math.cos(a) * 0.9, 3.25 + (s % 2) * 0.25, Math.sin(a) * 0.9);
+            sparklesGroup.add(sp);
+          }
+          sparklesGroup.visible = false;
+
+          const safeRing = new THREE.Mesh(
+            new THREE.RingGeometry(safeRadius - 0.12, safeRadius, 56),
+            new THREE.MeshBasicMaterial({
+              color: PALETTE.moon100,
+              side: THREE.DoubleSide,
+              transparent: true,
+              opacity: 0.12,
+            })
+          );
+          safeRing.rotation.x = -Math.PI / 2;
+          safeRing.position.y = 0.04;
+
+          const glow = new THREE.PointLight(PALETTE.warmGold, 0.0, 25);
+          glow.position.y = 3.3;
+
+          group.add(
+            basePlinth,
+            lowerPost,
+            tallColumn,
+            orb,
+            halo,
+            lampCrown,
+            finial,
+            sparklesGroup,
+            safeRing,
+            glow
+          );
+          scene.add(group);
+          entry = { group, orb, halo, sparklesGroup, safeRing, glow };
+          lanternMeshes.set(l.id, entry);
+        }
+
+        entry.group.position.set(l.pos[0], l.pos[1], l.pos[2]);
+        const ratio = Math.min(1.0, l.deposited / Math.max(1, lanternCost));
+        if (l.lit) {
+          entry.orb.material.color.setHex(PALETTE.moon100);
+          entry.orb.material.emissive.setHex(PALETTE.warmGold);
+          entry.orb.material.emissiveIntensity = 1.7;
+          entry.halo.material.opacity = 0.24 + (reducedMotion ? 0 : 0.05 * Math.sin(tick * 0.08));
+          entry.sparklesGroup.visible = true;
+          if (!reducedMotion) entry.sparklesGroup.rotation.y = tick * 0.03;
+          entry.glow.intensity = 7.2;
+          entry.safeRing.material.color.setHex(PALETTE.moon100);
+          entry.safeRing.material.opacity = 0.46;
+        } else if (ratio > 0) {
+          entry.orb.material.color.setHex(PALETTE.moon100);
+          entry.orb.material.emissive.setHex(PALETTE.warmAmber);
+          entry.orb.material.emissiveIntensity = 0.65 * ratio;
+          entry.halo.material.opacity = 0.1 * ratio;
+          entry.sparklesGroup.visible = false;
+          entry.glow.intensity = 1.6 * ratio;
+          entry.safeRing.material.color.setHex(PALETTE.teal300);
+          entry.safeRing.material.opacity = 0.18;
+        } else {
+          entry.orb.material.color.setHex(PALETTE.night800);
+          entry.orb.material.emissive.setHex(0x000000);
+          entry.halo.material.opacity = 0.0;
+          entry.sparklesGroup.visible = false;
+          entry.glow.intensity = 0.0;
+          entry.safeRing.material.color.setHex(PALETTE.blue700);
+          entry.safeRing.material.opacity = 0.12;
+        }
+      }
+    }
+
+    function syncMotes(motes, tick) {
+      const activeIds = new Set();
+      for (const m of motes) {
+        activeIds.add(m.id);
+        let entry = moteMeshes.get(m.id);
+        if (!entry) {
+          // Firefly Mote with Moon-100 Core & Warm Glow Halo (blinking_light.jpg)
+          const group = new THREE.Group();
+          const core = new THREE.Mesh(
+            new THREE.SphereGeometry(0.16, 12, 12),
+            new THREE.MeshBasicMaterial({ color: PALETTE.moon100 })
+          );
+          const halo = new THREE.Mesh(
+            new THREE.SphereGeometry(0.32, 12, 12),
+            new THREE.MeshBasicMaterial({
+              color: PALETTE.warmGold,
+              transparent: true,
+              opacity: 0.34,
+            })
+          );
+          group.add(core, halo);
+          scene.add(group);
+          entry = { group, halo };
+          moteMeshes.set(m.id, entry);
+        }
+        const phase = tick * 0.08 + m.pos[0] * 0.7 + m.pos[2] * 0.7;
+        const bob = reducedMotion ? 0.6 : 0.6 + 0.18 * Math.sin(phase);
+        const twinkle = reducedMotion ? 1.0 : 0.88 + 0.22 * Math.sin(phase * 1.4);
+        entry.group.position.set(m.pos[0], m.pos[1] + bob, m.pos[2]);
+        entry.group.scale.setScalar(twinkle);
+      }
+      for (const [id, entry] of moteMeshes.entries()) {
+        if (!activeIds.has(id)) {
+          scene.remove(entry.group);
+          moteMeshes.delete(id);
+        }
+      }
+    }
+
+    function syncShades(shades, tick) {
+      const activeIds = new Set();
+      for (const s of shades) {
+        activeIds.add(s.id);
+        let entry = shadeMeshes.get(s.id);
+        if (!entry) {
+          // Storybook Ghost / Shadow Ink Wisp Silhouette (ghost.jpg)
+          const group = new THREE.Group();
+          const headDome = new THREE.Mesh(
+            new THREE.SphereGeometry(0.46, 16, 16),
+            new THREE.MeshStandardMaterial({
+              color: PALETTE.ink950,
+              emissive: PALETTE.violet900,
+              emissiveIntensity: 0.85,
+              roughness: 0.5,
+            })
+          );
+          headDome.position.y = 1.25;
+
+          const cloakSkirt = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.45, 0.72, 1.05, 16),
+            new THREE.MeshStandardMaterial({
+              color: PALETTE.ink950,
+              emissive: PALETTE.violet900,
+              emissiveIntensity: 0.85,
+              roughness: 0.55,
+            })
+          );
+          cloakSkirt.position.y = 0.72;
+
+          const auraShell = new THREE.Mesh(
+            new THREE.SphereGeometry(0.76, 14, 14),
+            new THREE.MeshBasicMaterial({
+              color: PALETTE.violet900,
+              transparent: true,
+              opacity: 0.25,
+            })
+          );
+          auraShell.position.y = 0.95;
+
+          const eyeMat = new THREE.MeshBasicMaterial({ color: PALETTE.lavender200 });
+          const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeMat);
+          eyeL.position.set(0.15, 1.28, 0.41);
+          const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.08, 10, 10), eyeMat);
+          eyeR.position.set(-0.15, 1.28, 0.41);
+
+          group.add(headDome, cloakSkirt, auraShell, eyeL, eyeR);
+          scene.add(group);
+          entry = { group, headDome, cloakSkirt, auraShell, eyeMat };
+          shadeMeshes.set(s.id, entry);
+        }
+
+        const isStunned = s.state === 'stunned';
+        const floatY = reducedMotion ? 0 : 0.08 * Math.sin(tick * 0.09 + s.pos[0]);
+        const jitterX = isStunned && !reducedMotion ? Math.sin(tick * 1.5) * 0.11 : 0;
+        const jitterZ = isStunned && !reducedMotion ? Math.cos(tick * 1.7) * 0.11 : 0;
+        entry.group.position.set(s.pos[0] + jitterX, floatY, s.pos[2] + jitterZ);
+
+        if (isStunned) {
+          // Pale Lavender / Teal Stunned State (Section 3.2 & 5)
+          entry.headDome.material.color.setHex(PALETTE.lavender200);
+          entry.headDome.material.emissive.setHex(PALETTE.teal300);
+          entry.cloakSkirt.material.color.setHex(PALETTE.lavender200);
+          entry.cloakSkirt.material.emissive.setHex(PALETTE.teal300);
+          entry.auraShell.material.color.setHex(PALETTE.teal300);
+          entry.eyeMat.color.setHex(PALETTE.moon100);
+        } else {
+          entry.headDome.material.color.setHex(PALETTE.ink950);
+          entry.headDome.material.emissive.setHex(PALETTE.violet900);
+          entry.cloakSkirt.material.color.setHex(PALETTE.ink950);
+          entry.cloakSkirt.material.emissive.setHex(PALETTE.violet900);
+          entry.auraShell.material.color.setHex(PALETTE.violet900);
+          entry.eyeMat.color.setHex(PALETTE.lavender200);
+        }
+      }
+      for (const [id, entry] of shadeMeshes.entries()) {
+        if (!activeIds.has(id)) {
+          scene.remove(entry.group);
+          shadeMeshes.delete(id);
+        }
+      }
+    }
+
+    // Controls & Camera Yaw
     const keys = new Set();
+    let latchedJump = false;
+    let latchedInteract = false;
+    let latchedPulse = false;
+    let camYawDeg = 0.0;
+    let dragging = false;
+    let lastMouseX = 0;
+
     window.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
       keys.add(k);
+      if (e.code === 'Space') {
+        latchedJump = true;
+        e.preventDefault();
+      }
+      if (k === 'e' || k === 'f') latchedInteract = true;
+      if (k === 'shift' || k === 'j') latchedPulse = true;
       if (k === 'r') resetGame();
     });
     window.addEventListener('keyup', (e) => keys.delete(e.key.toLowerCase()));
+
+    window.addEventListener('mousedown', (e) => {
+      dragging = true;
+      lastMouseX = e.clientX;
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+    window.addEventListener('mousemove', (e) => {
+      if (dragging) {
+        const dx = e.clientX - lastMouseX;
+        lastMouseX = e.clientX;
+        camYawDeg = (camYawDeg + dx * 0.45) % 360;
+      }
+    });
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -133,53 +1028,209 @@
     });
 
     async function resetGame() {
+      modalOverlay.style.display = 'none';
+      seenPulseTick = -1000;
       const res = await fetch('/api/reset', { method: 'POST', body: '{}' });
       applySnapshot(await res.json());
     }
-    resetBtn.addEventListener('click', resetGame);
+    playAgainBtn.addEventListener('click', resetGame);
+
+    function formatTime(sec) {
+      const s = Math.max(0, Math.ceil(sec));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+    }
+
+    const bgNight950 = new THREE.Color(PALETTE.night950);
+    const bgNight800 = new THREE.Color(PALETTE.night800);
 
     function applySnapshot(snap) {
-      playerGroup.position.set(snap.player.x, snap.player.y, snap.player.z);
-      playerGroup.rotation.y = snap.player.yaw;
-      syncLanterns(snap.lanterns);
+      const tuning = snap.tuning || {
+        carry_capacity: 5,
+        lantern_cost: 3,
+        interact_radius: 2.5,
+        pulse_cost: 1,
+        pulse_radius: 6.0,
+        safe_radius: 5.0,
+      };
 
+      const [px, py, pz] = snap.player.pos;
+      playerGroup.position.set(px, py, pz);
+      playerGroup.rotation.y = snap.player_yaw || 0;
+      playerGroup.visible = (snap.player_invuln_s || 0) <= 0 || (snap.tick % 4 < 2);
+
+      if (snap.last_pulse_tick && snap.last_pulse_tick !== seenPulseTick && snap.last_pulse_tick > 0) {
+        seenPulseTick = snap.last_pulse_tick;
+        pulseWaveGroup.position.set(px, 0.16, pz);
+        pulseAnimAlpha = 0.92;
+        pulseAnimRadius = 0.65;
+      }
+
+      syncLanterns(snap.lanterns, tuning.safe_radius, tuning.lantern_cost, snap.tick);
+      syncMotes(snap.motes || [], snap.tick);
+      syncShades(snap.shades || [], snap.tick);
+
+      // Section 5: Dynamic Island Illumination (night-950 -> night-800/blue-700 as lanterns light)
       const litCount = snap.lanterns.filter((l) => l.lit).length;
-      statusEl.textContent = `Tick ${snap.tick} | Pos (${snap.player.x.toFixed(2)}, ${snap.player.z.toFixed(2)}) | Lanterns: ${litCount}/${snap.lanterns.length}`;
+      const totalLanterns = Math.max(1, snap.lanterns.length);
+      const progress = litCount / totalLanterns;
 
-      camera.position.set(snap.player.x, snap.player.y + 4.5, snap.player.z + 6.5);
-      camera.lookAt(snap.player.x, snap.player.y + 0.8, snap.player.z);
+      scene.background.lerpColors(bgNight950, bgNight800, progress * 0.75);
+      scene.fog.color.copy(scene.background);
+      scene.fog.density = 0.0175 - progress * 0.0105;
+      ambientLight.intensity = 1.35 + progress * 1.45;
+      moonLight.intensity = 0.9 + progress * 0.65;
+
+      // Gentle Star Twinkle & Lake Moon Shimmer
+      if (!reducedMotion) {
+        starMat.opacity = 0.82 + 0.14 * Math.sin(snap.tick * 0.04);
+        waterRipples.forEach((rp, idx) => {
+          rp.scale.x = 0.85 + 0.25 * Math.sin(snap.tick * 0.06 + idx);
+        });
+      }
+
+      lotusLanterns.forEach((lotus, idx) => {
+        const active = idx < litCount * 2;
+        lotus.core.material.color.setHex(active ? PALETTE.moon100 : PALETTE.blue700);
+        lotus.core.material.emissive.setHex(active ? PALETTE.warmGold : 0x000000);
+        if (!reducedMotion) {
+          lotus.group.position.y = -0.22 + 0.05 * Math.sin(snap.tick * 0.05 + idx);
+        }
+      });
+
+      // HUD Updates
+      const flames = snap.player.flames;
+      hudFlames.textContent = `${'🔥'.repeat(Math.max(0, flames))} (${flames})`;
+      hudCarried.textContent = `${snap.player.carried} / ${tuning.carry_capacity}`;
+      hudLanterns.textContent = `${litCount} / ${snap.lanterns.length}`;
+      hudTime.textContent = formatTime(snap.time_left_s);
+      hudScore.textContent = String(snap.score);
+
+      const cd = snap.pulse_cooldown_s || 0;
+      if (cd > 0.05) {
+        hudPulse.textContent = `Hồi chiêu ${cd.toFixed(1)}s`;
+        hudPulse.classList.remove('cool');
+        hudPulse.classList.add('danger');
+      } else if (snap.player.carried < tuning.pulse_cost) {
+        hudPulse.textContent = `Cần ${tuning.pulse_cost} đom đóm`;
+        hudPulse.classList.remove('cool');
+        hudPulse.classList.add('danger');
+      } else {
+        hudPulse.textContent = `Sẵn sàng [Shift / J]`;
+        hudPulse.classList.remove('danger');
+        hudPulse.classList.add('cool');
+      }
+
+      // Context prompt near unlit lantern
+      let nearLantern = null;
+      for (const l of snap.lanterns) {
+        if (!l.lit) {
+          const d = Math.hypot(px - l.pos[0], pz - l.pos[2]);
+          if (d <= tuning.interact_radius) {
+            nearLantern = l;
+            break;
+          }
+        }
+      }
+      if (nearLantern && snap.state === 'playing') {
+        promptBanner.style.display = 'block';
+        promptBanner.textContent =
+          snap.player.carried > 0
+            ? `Nhấn [E] hoặc [F] để nạp đom đóm vào Đèn ${nearLantern.id} (${nearLantern.deposited}/${tuning.lantern_cost})`
+            : `Đèn ${nearLantern.id} (${nearLantern.deposited}/${tuning.lantern_cost}) — Hãy thu thập thêm đom đóm!`;
+      } else {
+        promptBanner.style.display = 'none';
+      }
+
+      // Modal for Won / Lost
+      if (snap.state === 'won' || snap.state === 'lost') {
+        modalOverlay.style.display = 'flex';
+        if (snap.state === 'won') {
+          modalTitle.textContent = 'Đảo Bến Bừng Sáng! (Thắng)';
+          modalReason.textContent = 'Mây đã thắp sáng cả 5 Đèn Lồng Lớn và xua tan màn sương đêm!';
+        } else {
+          modalTitle.textContent = 'Màn Đêm Khép Lại... (Thua)';
+          modalReason.textContent =
+            snap.game_over_reason === 'dawn'
+              ? 'Trời đã sáng trước khi Mây kịp thắp đủ 5 Đèn Lồng Lớn.'
+              : 'Mây đã cạn hết lửa tâm khi chạm phải Bóng Mực.';
+        }
+        modalScore.textContent = `Tổng điểm: ${snap.score}`;
+      }
+
+      // Third-person camera tracking
+      const rad = (camYawDeg * Math.PI) / 180;
+      const camDist = 11.8;
+      const camHeight = 6.8;
+      camera.position.set(
+        px - Math.sin(rad) * camDist,
+        py + camHeight,
+        pz - Math.cos(rad) * camDist
+      );
+      camera.lookAt(px + Math.sin(rad) * 2.5, py + 1.15, pz + Math.cos(rad) * 2.5);
     }
 
     let stepping = false;
-    async function tickLoop() {
+    async function gameLoop() {
+      if (keys.has('q') || keys.has('arrowleft')) camYawDeg = (camYawDeg - 1.8) % 360;
+      if (keys.has('arrowright')) camYawDeg = (camYawDeg + 1.8) % 360;
+
+      if (pulseAnimAlpha > 0.01) {
+        pulseAnimRadius += 0.28;
+        pulseAnimAlpha *= 0.88;
+        pulseWaveGroup.scale.set(pulseAnimRadius, pulseAnimRadius, 1);
+        pulseOuterRing.material.opacity = pulseAnimAlpha;
+        pulseInnerRing.material.opacity = pulseAnimAlpha * 0.85;
+      } else {
+        pulseOuterRing.material.opacity = 0.0;
+        pulseInnerRing.material.opacity = 0.0;
+      }
+
       if (!stepping) {
         stepping = true;
         try {
           let moveX = 0;
           let moveZ = 0;
-          if (keys.has('a') || keys.has('arrowleft')) moveX -= 1;
-          if (keys.has('d') || keys.has('arrowright')) moveX += 1;
-          if (keys.has('w') || keys.has('arrowup')) moveZ -= 1;
-          if (keys.has('s') || keys.has('arrowdown')) moveZ += 1;
+          if (keys.has('w') || keys.has('arrowup')) moveZ += 1;
+          if (keys.has('s') || keys.has('arrowdown')) moveZ -= 1;
+          if (keys.has('a')) moveX += 1;
+          if (keys.has('d')) moveX -= 1;
+
+          const sendJump = latchedJump || keys.has(' ');
+          const sendInteract = latchedInteract || keys.has('e') || keys.has('f');
+          const sendPulse = latchedPulse || keys.has('shift') || keys.has('j');
+          latchedJump = false;
+          latchedInteract = false;
+          latchedPulse = false;
 
           const res = await fetch('/api/step', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ move_x: moveX, move_z: moveZ, ticks: 1 }),
+            body: JSON.stringify({
+              move_x: moveX,
+              move_z: moveZ,
+              cam_yaw_deg: camYawDeg,
+              jump: sendJump,
+              interact: sendInteract,
+              pulse: sendPulse,
+              ticks: 2,
+            }),
           });
           applySnapshot(await res.json());
-        } catch (err) {
-          statusEl.textContent = 'Server disconnected';
+        } catch (_err) {
+          // Server unreachable
         } finally {
           stepping = false;
         }
       }
+
       renderer.render(scene, camera);
-      requestAnimationFrame(tickLoop);
+      requestAnimationFrame(gameLoop);
     }
 
     fetch('/api/state').then((r) => r.json()).then(applySnapshot);
-    requestAnimationFrame(tickLoop);
+    requestAnimationFrame(gameLoop);
   </script>
 </body>
 </html>
